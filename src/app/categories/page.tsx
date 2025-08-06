@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Category } from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
@@ -8,7 +9,6 @@ import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   MagnifyingGlassIcon,
-  EyeIcon,
   PencilIcon,
   TrashIcon,
   PlusIcon
@@ -30,11 +30,7 @@ function CategoriesPage() {
     sortOrder: 0
   });
 
-  useEffect(() => {
-    fetchCategories();
-  }, [currentPage, searchTerm]);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
       const response: PaginatedResponse<Category> = await apiService.getCategories(currentPage, 10);
@@ -46,7 +42,11 @@ function CategoriesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleAddCategory = async () => {
     try {
@@ -55,9 +55,10 @@ function CategoriesPage() {
       setShowAddModal(false);
       setFormData({ name: '', description: '', image: '', sortOrder: 0 });
       fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating category:', error);
-      toast.error(error.message || 'Failed to create category');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create category';
+      toast.error(errorMessage);
     }
   };
 
@@ -71,9 +72,10 @@ function CategoriesPage() {
       setSelectedCategory(null);
       setFormData({ name: '', description: '', image: '', sortOrder: 0 });
       fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating category:', error);
-      toast.error(error.message || 'Failed to update category');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update category';
+      toast.error(errorMessage);
     }
   };
 
@@ -84,9 +86,10 @@ function CategoriesPage() {
       await apiService.deleteCategory(categoryId);
       toast.success('Category deleted successfully');
       fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting category:', error);
-      toast.error(error.message || 'Failed to delete category');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete category';
+      toast.error(errorMessage);
     }
   };
 
@@ -185,12 +188,14 @@ function CategoriesPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-12 w-12">
-                        <img 
+                        <Image 
                           className="h-12 w-12 rounded-lg object-cover" 
                           src={category.image} 
                           alt={category.name}
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/48x48?text=No+Image';
+                          width={48}
+                          height={48}
+                          onError={() => {
+                            // Fallback handled by src prop
                           }}
                         />
                       </div>

@@ -8,8 +8,6 @@ import {
   CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -26,7 +24,7 @@ import { DashboardStats } from '@/types';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+// COLORS array removed as it's not being used
 
 function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -77,10 +75,7 @@ function DashboardPage() {
     { name: 'Cancelled', value: stats.cancelledOrders, color: '#EF4444' },
   ];
 
-  const userData = [
-    { name: 'Active Users', value: stats.activeUsers, color: '#10B981' },
-    { name: 'Inactive Users', value: stats.inactiveUsers, color: '#6B7280' },
-  ];
+  // userData removed as it's not being used
 
   const monthlyRevenueData = [
     { month: 'Jan', revenue: 4000 },
@@ -94,7 +89,7 @@ function DashboardPage() {
   const StatCard = ({ title, value, icon: Icon, change, changeType }: {
     title: string;
     value: number;
-    icon: React.ComponentType<any>;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
     change?: number;
     changeType?: 'up' | 'down';
   }) => (

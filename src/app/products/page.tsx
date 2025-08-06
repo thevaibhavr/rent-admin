@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Product, Category } from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
@@ -8,11 +9,9 @@ import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   MagnifyingGlassIcon,
-  EyeIcon,
   PencilIcon,
   TrashIcon,
-  PlusIcon,
-  PhotoIcon
+  PlusIcon
 } from '@heroicons/react/24/outline';
 
 function ProductsPage() {
@@ -45,15 +44,10 @@ function ProductsPage() {
     isAvailable: true
   });
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, [currentPage, searchTerm, selectedCategory]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (searchTerm) filters.search = searchTerm;
       if (selectedCategory) filters.category = selectedCategory;
 
@@ -66,16 +60,21 @@ function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, selectedCategory]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response: PaginatedResponse<Category> = await apiService.getCategories(1, 100);
       setCategories(response.data.categories || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
 
   const handleAddProduct = async () => {
     try {
@@ -90,9 +89,10 @@ function ProductsPage() {
       setShowAddModal(false);
       resetForm();
       fetchProducts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating product:', error);
-      toast.error(error.message || 'Failed to create product');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create product';
+      toast.error(errorMessage);
     }
   };
 
@@ -112,9 +112,10 @@ function ProductsPage() {
       setSelectedProduct(null);
       resetForm();
       fetchProducts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating product:', error);
-      toast.error(error.message || 'Failed to update product');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
+      toast.error(errorMessage);
     }
   };
 
@@ -125,9 +126,10 @@ function ProductsPage() {
       await apiService.deleteProduct(productId);
       toast.success('Product deleted successfully');
       fetchProducts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting product:', error);
-      toast.error(error.message || 'Failed to delete product');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete product';
+      toast.error(errorMessage);
     }
   };
 
@@ -205,9 +207,7 @@ function ProductsPage() {
     setFormData({ ...formData, tags: newTags });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  // formatDate function removed as it's not being used
 
   if (loading) {
     return (
@@ -284,12 +284,14 @@ function ProductsPage() {
           {products.map((product) => (
             <div key={product._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-w-1 aspect-h-1 w-full">
-                <img 
+                <Image 
                   className="w-full h-48 object-cover" 
                   src={product.images[0] || 'https://via.placeholder.com/300x300?text=No+Image'} 
                   alt={product.name}
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                  width={300}
+                  height={300}
+                  onError={() => {
+                    // Fallback handled by src prop
                   }}
                 />
               </div>
@@ -462,7 +464,7 @@ function ProductsPage() {
                     <label className="block text-sm font-medium text-gray-700">Size</label>
                     <select
                       value={formData.size}
-                      onChange={(e) => setFormData({ ...formData, size: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, size: e.target.value as 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'Free Size' })}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                       <option value="XS">XS</option>
@@ -488,7 +490,7 @@ function ProductsPage() {
                     <label className="block text-sm font-medium text-gray-700">Condition</label>
                     <select
                       value={formData.condition}
-                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as 'Excellent' | 'Very Good' | 'Good' | 'Fair' })}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                       <option value="Excellent">Excellent</option>

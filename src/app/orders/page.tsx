@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Order } from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   MagnifyingGlassIcon,
-  EyeIcon,
   PencilIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
@@ -28,14 +27,10 @@ function OrdersPage() {
     adminNotes: ''
   });
 
-  useEffect(() => {
-    fetchOrders();
-  }, [currentPage, searchTerm, statusFilter]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (searchTerm) filters.search = searchTerm;
       if (statusFilter) filters.status = statusFilter;
 
@@ -48,7 +43,11 @@ function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleUpdateStatus = async () => {
     if (!selectedOrder) return;
@@ -60,9 +59,10 @@ function OrdersPage() {
       setSelectedOrder(null);
       setStatusForm({ orderStatus: '', paymentStatus: '', adminNotes: '' });
       fetchOrders();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating order status:', error);
-      toast.error(error.message || 'Failed to update order status');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update order status';
+      toast.error(errorMessage);
     }
   };
 
@@ -73,9 +73,10 @@ function OrdersPage() {
       await apiService.cancelOrder(orderId, 'Order cancelled by admin');
       toast.success('Order cancelled successfully');
       fetchOrders();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cancelling order:', error);
-      toast.error(error.message || 'Failed to cancel order');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel order';
+      toast.error(errorMessage);
     }
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { User } from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
@@ -22,14 +22,10 @@ function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, searchTerm, selectedRole]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (searchTerm) filters.search = searchTerm;
       if (selectedRole) filters.role = selectedRole;
 
@@ -42,7 +38,11 @@ function UsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, selectedRole]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleToggleUserStatus = async (userId: string) => {
     try {

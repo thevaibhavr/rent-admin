@@ -93,7 +93,7 @@ class ApiService {
   }
 
   // Products endpoints
-  async getProducts(page = 1, limit = 12, filters?: Record<string, any>): Promise<PaginatedResponse<Product>> {
+  async getProducts(page = 1, limit = 12, filters?: Record<string, string>): Promise<PaginatedResponse<Product>> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -123,7 +123,7 @@ class ApiService {
   }
 
   // Orders endpoints
-  async getOrders(page = 1, limit = 10, filters?: Record<string, any>): Promise<PaginatedResponse<Order>> {
+  async getOrders(page = 1, limit = 10, filters?: Record<string, string>): Promise<PaginatedResponse<Order>> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -154,7 +154,7 @@ class ApiService {
   }
 
   // Users endpoints
-  async getUsers(page = 1, limit = 10, filters?: Record<string, any>): Promise<PaginatedResponse<User>> {
+  async getUsers(page = 1, limit = 10, filters?: Record<string, string>): Promise<PaginatedResponse<User>> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
