@@ -21,9 +21,13 @@ function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [statusForm, setStatusForm] = useState({
-    orderStatus: '',
-    paymentStatus: '',
+  const [statusForm, setStatusForm] = useState<{
+    orderStatus: Order['orderStatus'];
+    paymentStatus: Order['paymentStatus'];
+    adminNotes: string;
+  }>({
+    orderStatus: 'Pending',
+    paymentStatus: 'Pending',
     adminNotes: ''
   });
 
@@ -57,7 +61,7 @@ function OrdersPage() {
       toast.success('Order status updated successfully');
       setShowStatusModal(false);
       setSelectedOrder(null);
-      setStatusForm({ orderStatus: '', paymentStatus: '', adminNotes: '' });
+      setStatusForm({ orderStatus: 'Pending', paymentStatus: 'Pending', adminNotes: '' });
       fetchOrders();
     } catch (error: unknown) {
       console.error('Error updating order status:', error);
