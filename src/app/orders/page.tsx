@@ -39,7 +39,7 @@ function OrdersPage() {
       if (statusFilter) filters.status = statusFilter;
 
       const response: PaginatedResponse<Order> = await apiService.getOrders(currentPage, 10, filters);
-      setOrders(response.data.orders || []);
+      setOrders(Array.isArray(response.data.orders) ? response.data.orders : []);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -359,7 +359,7 @@ function OrdersPage() {
                   <label className="block text-sm font-medium text-gray-700">Order Status</label>
                   <select
                     value={statusForm.orderStatus}
-                    onChange={(e) => setStatusForm({ ...statusForm, orderStatus: e.target.value })}
+                    onChange={(e) => setStatusForm({ ...statusForm, orderStatus: e.target.value as Order["orderStatus"] })}
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
                     <option value="Pending">Pending</option>
@@ -375,7 +375,7 @@ function OrdersPage() {
                   <label className="block text-sm font-medium text-gray-700">Payment Status</label>
                   <select
                     value={statusForm.paymentStatus}
-                    onChange={(e) => setStatusForm({ ...statusForm, paymentStatus: e.target.value })}
+                    onChange={(e) => setStatusForm({ ...statusForm, paymentStatus: e.target.value as Order["paymentStatus"] })}
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
                     <option value="Pending">Pending</option>

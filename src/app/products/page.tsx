@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Product, Category } from '@/types';
+import { Product, Category, CreateProductData } from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
@@ -30,10 +30,10 @@ function ProductsPage() {
     images: [''],
     price: 0,
     originalPrice: 0,
-    size: 'M' as const,
+    size: 'M' as Product["size"],
     color: '',
     rentalDuration: 1,
-    condition: 'Good' as const,
+    condition: 'Good' as Product["condition"],
     brand: '',
     material: '',
     tags: [''],
@@ -50,7 +50,7 @@ function ProductsPage() {
       if (selectedCategory) filters.category = selectedCategory;
 
       const response: PaginatedResponse<Product> = await apiService.getProducts(currentPage, 12, filters);
-      setProducts(response.data.products || []);
+      setProducts(Array.isArray(response.data.products) ? response.data.products : []);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -63,7 +63,7 @@ function ProductsPage() {
   const fetchCategories = useCallback(async () => {
     try {
       const response: PaginatedResponse<Category> = await apiService.getCategories(1, 100);
-      setCategories(response.data.categories || []);
+      setCategories(Array.isArray(response.data.categories) ? response.data.categories : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }

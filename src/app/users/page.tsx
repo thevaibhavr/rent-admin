@@ -30,7 +30,7 @@ function UsersPage() {
       if (selectedRole) filters.role = selectedRole;
 
       const response: PaginatedResponse<User> = await apiService.getUsers(currentPage, 10, filters);
-      setUsers(response.data.users || []);
+      setUsers(Array.isArray(response.data.users) ? response.data.users : []);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching users:', error);

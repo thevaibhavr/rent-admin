@@ -110,7 +110,7 @@ export interface ApiResponse<T> {
 export interface PaginatedResponse<T> {
   success: boolean;
   data: {
-    [key: string]: T[];
+    [key: string]: T[] | number;
     totalPages: number;
     currentPage: number;
     total: number;

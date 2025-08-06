@@ -34,7 +34,7 @@ function CategoriesPage() {
     try {
       setLoading(true);
       const response: PaginatedResponse<Category> = await apiService.getCategories(currentPage, 10);
-      setCategories(response.data.categories || []);
+      setCategories(Array.isArray(response.data.categories) ? response.data.categories : []);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching categories:', error);
