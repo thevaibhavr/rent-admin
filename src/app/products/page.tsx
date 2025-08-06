@@ -9,8 +9,6 @@ import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   MagnifyingGlassIcon,
-  PencilIcon,
-  TrashIcon,
   PlusIcon
 } from '@heroicons/react/24/outline';
 
@@ -717,7 +715,7 @@ function ProductsPage() {
                     <label className="block text-sm font-medium text-gray-700">Size</label>
                     <select
                       value={formData.size}
-                      onChange={(e) => setFormData({ ...formData, size: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, size: e.target.value as 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'Free Size' })}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                       <option value="XS">XS</option>
@@ -743,7 +741,7 @@ function ProductsPage() {
                     <label className="block text-sm font-medium text-gray-700">Condition</label>
                     <select
                       value={formData.condition}
-                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as 'Excellent' | 'Very Good' | 'Good' | 'Fair' })}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                       <option value="Excellent">Excellent</option>

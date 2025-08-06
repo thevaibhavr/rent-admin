@@ -42,7 +42,7 @@ function CategoriesPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm]);
+  }, [currentPage]);
 
   useEffect(() => {
     fetchCategories();
