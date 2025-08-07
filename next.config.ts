@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  images: {
+    domains: ['res.cloudinary.com'],
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
