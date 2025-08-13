@@ -31,7 +31,7 @@ function ProductsPage() {
     images: [''],
     price: 0,
     originalPrice: 0,
-    size: 'M' as Product["size"],
+    sizes: [{ size: 'M' as ProductSize["size"], isAvailable: true, quantity: 1 }],
     color: '',
     rentalDuration: 1,
     condition: 'Good' as Product["condition"],
@@ -141,7 +141,7 @@ function ProductsPage() {
       images: product.images,
       price: product.price,
       originalPrice: product.originalPrice,
-      size: product.size,
+      sizes: product.sizes.length > 0 ? product.sizes : [{ size: 'M', isAvailable: true, quantity: 1 }],
       color: product.color,
       rentalDuration: product.rentalDuration,
       condition: product.condition,
@@ -163,7 +163,7 @@ function ProductsPage() {
       images: [''],
       price: 0,
       originalPrice: 0,
-      size: 'M',
+      sizes: [{ size: 'M', isAvailable: true, quantity: 1 }],
       color: '',
       rentalDuration: 1,
       condition: 'Good',
@@ -191,6 +191,24 @@ function ProductsPage() {
     const newTags = [...formData.tags];
     newTags[index] = value;
     setFormData({ ...formData, tags: newTags });
+  };
+
+  const addSizeField = () => {
+    setFormData({ 
+      ...formData, 
+      sizes: [...formData.sizes, { size: 'M', isAvailable: true, quantity: 1 }] 
+    });
+  };
+
+  const removeSizeField = (index: number) => {
+    const newSizes = formData.sizes.filter((_, i) => i !== index);
+    setFormData({ ...formData, sizes: newSizes });
+  };
+
+  const updateSizeField = (index: number, field: keyof ProductSize, value: any) => {
+    const newSizes = [...formData.sizes];
+    newSizes[index] = { ...newSizes[index], [field]: value };
+    setFormData({ ...formData, sizes: newSizes });
   };
 
   // formatDate function removed as it's not being used
@@ -295,7 +313,7 @@ function ProductsPage() {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
-                  <span>Size: {product.size}</span>
+                  <span>Sizes: {product.sizes.map(s => s.size).join(', ')}</span>
                   <span>Color: {product.color}</span>
                 </div>
                 <div className="mt-3 flex justify-between">
@@ -445,23 +463,7 @@ function ProductsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Size</label>
-                    <select
-                      value={formData.size}
-                      onChange={(e) => setFormData({ ...formData, size: e.target.value as 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'Free Size' })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="XS">XS</option>
-                      <option value="S">S</option>
-                      <option value="M">M</option>
-                      <option value="L">L</option>
-                      <option value="XL">XL</option>
-                      <option value="XXL">XXL</option>
-                      <option value="Free Size">Free Size</option>
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Color</label>
                     <input
@@ -485,6 +487,67 @@ function ProductsPage() {
                       <option value="Fair">Fair</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Sizes</label>
+                  {formData.sizes.map((sizeItem, index) => (
+                    <div key={index} className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-4 border border-gray-200 rounded-md p-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700">Size</label>
+                        <select
+                          value={sizeItem.size}
+                          onChange={(e) => updateSizeField(index, 'size', e.target.value)}
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                          <option value="XS">XS</option>
+                          <option value="S">S</option>
+                          <option value="M">M</option>
+                          <option value="L">L</option>
+                          <option value="XL">XL</option>
+                          <option value="XXL">XXL</option>
+                          <option value="Free Size">Free Size</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700">Quantity</label>
+                        <input
+                          type="number"
+                          value={sizeItem.quantity}
+                          onChange={(e) => updateSizeField(index, 'quantity', parseInt(e.target.value) || 1)}
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          min="1"
+                        />
+                      </div>
+                      <div className="flex items-center">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={sizeItem.isAvailable}
+                            onChange={(e) => updateSizeField(index, 'isAvailable', e.target.checked)}
+                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                          />
+                          <span className="ml-2 text-xs text-gray-700">Available</span>
+                        </label>
+                      </div>
+                      {formData.sizes.length > 1 && (
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => removeSizeField(index)}
+                            className="text-red-600 hover:text-red-900 text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    onClick={addSizeField}
+                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-900"
+                  >
+                    + Add Size
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -678,23 +741,7 @@ function ProductsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Size</label>
-                    <select
-                      value={formData.size}
-                      onChange={(e) => setFormData({ ...formData, size: e.target.value as 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'Free Size' })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="XS">XS</option>
-                      <option value="S">S</option>
-                      <option value="M">M</option>
-                      <option value="L">L</option>
-                      <option value="XL">XL</option>
-                      <option value="XXL">XXL</option>
-                      <option value="Free Size">Free Size</option>
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Color</label>
                     <input
@@ -718,6 +765,67 @@ function ProductsPage() {
                       <option value="Fair">Fair</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Sizes</label>
+                  {formData.sizes.map((sizeItem, index) => (
+                    <div key={index} className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-4 border border-gray-200 rounded-md p-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700">Size</label>
+                        <select
+                          value={sizeItem.size}
+                          onChange={(e) => updateSizeField(index, 'size', e.target.value)}
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                          <option value="XS">XS</option>
+                          <option value="S">S</option>
+                          <option value="M">M</option>
+                          <option value="L">L</option>
+                          <option value="XL">XL</option>
+                          <option value="XXL">XXL</option>
+                          <option value="Free Size">Free Size</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700">Quantity</label>
+                        <input
+                          type="number"
+                          value={sizeItem.quantity}
+                          onChange={(e) => updateSizeField(index, 'quantity', parseInt(e.target.value) || 1)}
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          min="1"
+                        />
+                      </div>
+                      <div className="flex items-center">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={sizeItem.isAvailable}
+                            onChange={(e) => updateSizeField(index, 'isAvailable', e.target.checked)}
+                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                          />
+                          <span className="ml-2 text-xs text-gray-700">Available</span>
+                        </label>
+                      </div>
+                      {formData.sizes.length > 1 && (
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => removeSizeField(index)}
+                            className="text-red-600 hover:text-red-900 text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    onClick={addSizeField}
+                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-900"
+                  >
+                    + Add Size
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
