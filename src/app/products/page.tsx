@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Product, Category, CreateProductData } from '@/types';
+import { Product, Category, ProductSize} from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
@@ -205,7 +205,7 @@ function ProductsPage() {
     setFormData({ ...formData, sizes: newSizes });
   };
 
-  const updateSizeField = (index: number, field: keyof ProductSize, value: any) => {
+  const updateSizeField = (index: number, field: keyof ProductSize, value: string | number | boolean) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     setFormData({ ...formData, sizes: newSizes });

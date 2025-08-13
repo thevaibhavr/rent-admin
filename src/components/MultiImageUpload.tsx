@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { PhotoIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface MultiImageUploadProps {
   value: string[];
@@ -15,11 +15,10 @@ interface MultiImageUploadProps {
 const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   value,
   onChange,
-  placeholder = "https://example.com/image.jpg",
   className = "",
   maxImages = 10
 }) => {
-  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('file');
+  const [uploadMode] = useState<'url' | 'file'>('file');
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<{ [key: number]: string }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,19 +101,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
 
 
-  const removeImageField = (index: number) => {
-    const newImages = value.filter((_, i) => i !== index);
-    onChange(newImages);
-    
-    // Update preview URLs
-    const newPreviewUrls: { [key: number]: string } = {};
-    newImages.forEach((_, i) => {
-      if (previewUrls[i] !== undefined) {
-        newPreviewUrls[i] = previewUrls[i];
-      }
-    });
-    setPreviewUrls(newPreviewUrls);
-  };
+
 
   const clearImage = (index: number) => {
     const newImages = [...value];
