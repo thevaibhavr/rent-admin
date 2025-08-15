@@ -10,7 +10,20 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
   },
   images: {
-    domains: ['res.cloudinary.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.mohifashion.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudinary.com',
+      },
+    ],
   },
   webpack: (config) => {
     config.resolve.alias = {

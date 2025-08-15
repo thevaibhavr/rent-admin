@@ -7,11 +7,13 @@ import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ImageUpload from '@/components/ImageUpload';
 import { 
   MagnifyingGlassIcon,
   PencilIcon,
   TrashIcon,
-  PlusIcon
+  PlusIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
 
 function CategoriesPage() {
@@ -186,19 +188,29 @@ function CategoriesPage() {
               {categories.map((category) => (
                 <tr key={category._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-12 w-12">
-                        <Image 
-                          className="h-12 w-12 rounded-lg object-cover" 
-                          src={category.image} 
-                          alt={category.name}
-                          width={48}
-                          height={48}
-                          onError={() => {
-                            // Fallback handled by src prop
-                          }}
-                        />
-                      </div>
+                                          <div className="flex items-center">
+                        <div className="flex-shrink-0 h-12 w-12">
+                          <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                            {category.image ? (
+                              <Image 
+                                className="h-12 w-12 rounded-lg object-cover" 
+                                src={category.image} 
+                                alt={category.name}
+                                width={48}
+                                height={48}
+                                onError={(e) => {
+                                  // Hide the image and show fallback
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <div className={`h-12 w-12 rounded-lg bg-gray-300 flex items-center justify-center ${category.image ? 'hidden' : ''}`}>
+                              <PhotoIcon className="w-6 h-6 text-gray-500" />
+                            </div>
+                          </div>
+                        </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{category.name}</div>
                         <div className="text-sm text-gray-500">{category.slug}</div>
@@ -299,7 +311,7 @@ function CategoriesPage() {
       {/* Add Category Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-[500px] shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Category</h3>
               <div className="space-y-4">
@@ -324,13 +336,11 @@ function CategoriesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                  <input
-                    type="url"
+                  <label className="block text-sm font-medium text-gray-700">Category Image</label>
+                  <ImageUpload
                     value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="https://example.com/image.jpg"
+                    onChange={(value) => setFormData({ ...formData, image: value })}
+                    placeholder="Upload category image"
                   />
                 </div>
                 <div>
@@ -366,7 +376,7 @@ function CategoriesPage() {
       {/* Edit Category Modal */}
       {showEditModal && selectedCategory && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-[500px] shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Category</h3>
               <div className="space-y-4">
@@ -391,13 +401,11 @@ function CategoriesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                  <input
-                    type="url"
+                  <label className="block text-sm font-medium text-gray-700">Category Image</label>
+                  <ImageUpload
                     value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="https://example.com/image.jpg"
+                    onChange={(value) => setFormData({ ...formData, image: value })}
+                    placeholder="Upload category image"
                   />
                 </div>
                 <div>

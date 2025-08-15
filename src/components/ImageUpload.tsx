@@ -17,10 +17,33 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   placeholder = "https://example.com/image.jpg",
   className = ""
 }) => {
-  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url');
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('file');
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'cloths');
+    formData.append('cloud_name', 'djrdmqjir');
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/djrdmqjir/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image to Cloudinary');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -40,30 +63,31 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
     setIsUploading(true);
     try {
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setPreviewUrl(result);
-        onChange(result); // This will be the base64 data URL
-      };
-      reader.readAsDataURL(file);
+      // Upload to Cloudinary
+      const cloudinaryUrl = await uploadToCloudinary(file);
+      onChange(cloudinaryUrl);
+      setPreviewUrl(cloudinaryUrl);
     } catch (error) {
-      console.error('Error processing file:', error);
-      alert('Error processing file');
+      console.error('Error uploading file:', error);
+      alert('Error uploading file to Cloudinary');
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
   const handleUrlChange = (url: string) => {
     onChange(url);
     setPreviewUrl(url);
+    setImageError(false);
   };
 
   const clearImage = () => {
     onChange('');
     setPreviewUrl(null);
+    setImageError(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -147,15 +171,25 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       {getDisplayUrl() && (
         <div className="relative">
           <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-            <Image
-              src={getDisplayUrl()}
-              alt="Preview"
-              fill
-              className="object-cover"
-              onError={() => {
-                // Handle error silently
-              }}
-            />
+            {!imageError ? (
+              <Image
+                src={getDisplayUrl()}
+                alt="Preview"
+                fill
+                className="object-cover"
+                onError={() => {
+                  setImageError(true);
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <PhotoIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Image failed to load</p>
+                  <p className="text-xs text-gray-400">Please check the URL or upload a new image</p>
+                </div>
+              </div>
+            )}
             <button
               type="button"
               onClick={clearImage}
@@ -165,7 +199,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             </button>
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            {uploadMode === 'file' ? 'File will be uploaded when you save' : 'Image URL'}
+            {uploadMode === 'file' ? 'Image uploaded to Cloudinary' : 'Image URL'}
           </p>
         </div>
       )}
