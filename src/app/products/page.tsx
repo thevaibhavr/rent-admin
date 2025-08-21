@@ -134,10 +134,24 @@ function ProductsPage() {
 
   const openEditModal = (product: Product) => {
     setSelectedProduct(product);
+    
+    // Safely extract category IDs, filtering out null/undefined values
+    let categoryIds: string[] = [];
+    if (product.categories && product.categories.length > 0) {
+      categoryIds = product.categories
+        .filter(cat => cat && cat._id) // Filter out null/undefined categories
+        .map(cat => cat._id);
+    }
+    
+    // If no valid categories found, use the single category
+    if (categoryIds.length === 0 && product.category && product.category._id) {
+      categoryIds = [product.category._id];
+    }
+    
     setFormData({
       name: product.name,
       description: product.description,
-      categories: product.categories ? product.categories.map(cat => cat._id) : [product.category._id],
+      categories: categoryIds,
       images: product.images,
       price: product.price,
       originalPrice: product.originalPrice,
