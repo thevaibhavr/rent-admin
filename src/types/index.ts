@@ -41,6 +41,7 @@ export interface Product {
   name: string;
   description: string;
   category: Category;
+  categories: Category[];
   images: string[];
   price: number;
   originalPrice: number;
@@ -156,7 +157,7 @@ export interface CreateCategoryData {
 export interface CreateProductData {
   name: string;
   description: string;
-  category: string;
+  categories: string[];
   images: string[];
   price: number;
   originalPrice: number;

@@ -27,7 +27,7 @@ function ProductsPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: '',
+    categories: [] as string[],
     images: [''],
     price: 0,
     originalPrice: 0,
@@ -137,7 +137,7 @@ function ProductsPage() {
     setFormData({
       name: product.name,
       description: product.description,
-      category: product.category._id,
+      categories: product.categories ? product.categories.map(cat => cat._id) : [product.category._id],
       images: product.images,
       price: product.price,
       originalPrice: product.originalPrice,
@@ -159,7 +159,7 @@ function ProductsPage() {
     setFormData({
       name: '',
       description: '',
-      category: '',
+      categories: [],
       images: [''],
       price: 0,
       originalPrice: 0,
@@ -301,7 +301,12 @@ function ProductsPage() {
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">{product.category.name}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {product.categories && product.categories.length > 0 
+                    ? product.categories.map(cat => cat.name).join(', ')
+                    : product.category.name
+                  }
+                </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-lg font-semibold text-gray-900">${product.price}</span>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -403,19 +408,35 @@ function ProductsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="">Select Category</option>
+                    <label className="block text-sm font-medium text-gray-700">Categories</label>
+                    <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
                       {categories.map((category) => (
-                        <option key={category._id} value={category._id}>
-                          {category.name}
-                        </option>
+                        <label key={category._id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.categories.includes(category._id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  categories: [...formData.categories, category._id]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  categories: formData.categories.filter(id => id !== category._id)
+                                });
+                              }
+                            }}
+                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{category.name}</span>
+                        </label>
                       ))}
-                    </select>
+                    </div>
+                    {formData.categories.length === 0 && (
+                      <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
+                    )}
                   </div>
                 </div>
 
@@ -681,19 +702,35 @@ function ProductsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="">Select Category</option>
+                    <label className="block text-sm font-medium text-gray-700">Categories</label>
+                    <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
                       {categories.map((category) => (
-                        <option key={category._id} value={category._id}>
-                          {category.name}
-                        </option>
+                        <label key={category._id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.categories.includes(category._id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  categories: [...formData.categories, category._id]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  categories: formData.categories.filter(id => id !== category._id)
+                                });
+                              }
+                            }}
+                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{category.name}</span>
+                        </label>
                       ))}
-                    </select>
+                    </div>
+                    {formData.categories.length === 0 && (
+                      <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
+                    )}
                   </div>
                 </div>
 
