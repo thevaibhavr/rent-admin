@@ -11,6 +11,8 @@ import {
   AuthResponse,
   CreateCategoryData,
   CreateProductData,
+  CreateMerchantData,
+  Merchant,
   UpdateOrderStatusData
 } from '@/types';
 
@@ -90,6 +92,36 @@ class ApiService {
 
   async deleteCategory(id: string): Promise<void> {
     await this.api.delete(`/categories/${id}`);
+  }
+
+  // Merchants endpoints
+  async getMerchants(page = 1, limit = 10, filters?: Record<string, string>): Promise<PaginatedResponse<Merchant>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...filters
+    });
+    const response: AxiosResponse<PaginatedResponse<Merchant>> = await this.api.get(`/merchants?${params}`);
+    return response.data;
+  }
+
+  async getMerchant(id: string): Promise<Merchant> {
+    const response: AxiosResponse<ApiResponse<{ merchant: Merchant }>> = await this.api.get(`/merchants/${id}`);
+    return response.data.data!.merchant;
+  }
+
+  async createMerchant(data: CreateMerchantData): Promise<Merchant> {
+    const response: AxiosResponse<ApiResponse<{ merchant: Merchant }>> = await this.api.post('/merchants', data);
+    return response.data.data!.merchant;
+  }
+
+  async updateMerchant(id: string, data: Partial<CreateMerchantData>): Promise<Merchant> {
+    const response: AxiosResponse<ApiResponse<{ merchant: Merchant }>> = await this.api.put(`/merchants/${id}`, data);
+    return response.data.data!.merchant;
+  }
+
+  async deleteMerchant(id: string): Promise<void> {
+    await this.api.delete(`/merchants/${id}`);
   }
 
   // Products endpoints

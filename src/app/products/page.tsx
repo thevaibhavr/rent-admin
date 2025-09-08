@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Product, Category, ProductSize} from '@/types';
+import { Product, Category, ProductSize, Merchant} from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
@@ -16,6 +16,7 @@ import {
 function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -28,9 +29,11 @@ function ProductsPage() {
     name: '',
     description: '',
     categories: [] as string[],
+    Owner: '',
     images: [''],
     price: 0,
     originalPrice: 0,
+    deposit: 0,
     sizes: [{ size: 'M' as ProductSize["size"], isAvailable: true, quantity: 1 }],
     color: '',
     rentalDuration: 1,
@@ -70,10 +73,20 @@ function ProductsPage() {
     }
   }, []);
 
+  const fetchMerchants = useCallback(async () => {
+    try {
+      const response: PaginatedResponse<Merchant> = await apiService.getMerchants(1, 100);
+      setMerchants(Array.isArray(response.data.merchants) ? response.data.merchants : []);
+    } catch (error) {
+      console.error('Error fetching merchants:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [fetchProducts, fetchCategories]);
+    fetchMerchants();
+  }, [fetchProducts, fetchCategories, fetchMerchants]);
 
   const handleAddProduct = async () => {
     try {
@@ -152,9 +165,11 @@ function ProductsPage() {
       name: product.name,
       description: product.description,
       categories: categoryIds,
+      Owner: product.Owner?._id || '',
       images: product.images,
       price: product.price,
       originalPrice: product.originalPrice,
+      deposit: product.deposit || 0,
       sizes: product.sizes.length > 0 ? product.sizes : [{ size: 'M', isAvailable: true, quantity: 1 }],
       color: product.color,
       rentalDuration: product.rentalDuration,
@@ -174,9 +189,11 @@ function ProductsPage() {
       name: '',
       description: '',
       categories: [],
+      Owner: '',
       images: [''],
       price: 0,
       originalPrice: 0,
+      deposit: 0,
       sizes: [{ size: 'M', isAvailable: true, quantity: 1 }],
       color: '',
       rentalDuration: 1,
@@ -322,7 +339,12 @@ function ProductsPage() {
                   }
                 </p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-lg font-semibold text-gray-900">${product.price}</span>
+                  <div>
+                    <span className="text-lg font-semibold text-gray-900">${product.price}</span>
+                    {product.deposit && product.deposit > 0 && (
+                      <span className="text-sm text-gray-600 ml-2">+ ${product.deposit} deposit</span>
+                    )}
+                  </div>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     product.isAvailable 
                       ? 'bg-green-100 text-green-800' 
@@ -335,6 +357,11 @@ function ProductsPage() {
                   <span>Sizes: {product.sizes.map(s => s.size).join(', ')}</span>
                   <span>Color: {product.color}</span>
                 </div>
+                {product.Owner && (
+                  <div className="mt-1 text-sm text-gray-500">
+                    <span>Merchant: {product.Owner.name}</span>
+                  </div>
+                )}
                 <div className="mt-3 flex justify-between">
                   <button 
                     onClick={() => openEditModal(product)}
@@ -422,36 +449,52 @@ function ProductsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Categories</label>
-                    <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
-                      {categories.map((category) => (
-                        <label key={category._id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.categories.includes(category._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({
-                                  ...formData,
-                                  categories: [...formData.categories, category._id]
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  categories: formData.categories.filter(id => id !== category._id)
-                                });
-                              }
-                            }}
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{category.name}</span>
-                        </label>
+                    <label className="block text-sm font-medium text-gray-700">Merchant</label>
+                    <select
+                      value={formData.Owner}
+                      onChange={(e) => setFormData({ ...formData, Owner: e.target.value })}
+                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                      <option value="">Select Merchant (Optional)</option>
+                      {merchants.map((merchant) => (
+                        <option key={merchant._id} value={merchant._id}>
+                          {merchant.name}
+                        </option>
                       ))}
-                    </div>
-                    {formData.categories.length === 0 && (
-                      <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
-                    )}
+                    </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Categories</label>
+                  <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
+                    {categories.map((category) => (
+                      <label key={category._id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                categories: [...formData.categories, category._id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                categories: formData.categories.filter(id => id !== category._id)
+                              });
+                            }
+                          }}
+                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{category.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {formData.categories.length === 0 && (
+                    <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
+                  )}
                 </div>
 
                 <div>
@@ -465,7 +508,7 @@ function ProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Price</label>
                     <input
@@ -482,6 +525,16 @@ function ProductsPage() {
                       type="number"
                       value={formData.originalPrice}
                       onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) || 0 })}
+                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Deposit</label>
+                    <input
+                      type="number"
+                      value={formData.deposit}
+                      onChange={(e) => setFormData({ ...formData, deposit: parseFloat(e.target.value) || 0 })}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       placeholder="0.00"
                     />
@@ -716,36 +769,52 @@ function ProductsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Categories</label>
-                    <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
-                      {categories.map((category) => (
-                        <label key={category._id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.categories.includes(category._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({
-                                  ...formData,
-                                  categories: [...formData.categories, category._id]
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  categories: formData.categories.filter(id => id !== category._id)
-                                });
-                              }
-                            }}
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{category.name}</span>
-                        </label>
+                    <label className="block text-sm font-medium text-gray-700">Merchant</label>
+                    <select
+                      value={formData.Owner}
+                      onChange={(e) => setFormData({ ...formData, Owner: e.target.value })}
+                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                      <option value="">Select Merchant (Optional)</option>
+                      {merchants.map((merchant) => (
+                        <option key={merchant._id} value={merchant._id}>
+                          {merchant.name}
+                        </option>
                       ))}
-                    </div>
-                    {formData.categories.length === 0 && (
-                      <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
-                    )}
+                    </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Categories</label>
+                  <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
+                    {categories.map((category) => (
+                      <label key={category._id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                categories: [...formData.categories, category._id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                categories: formData.categories.filter(id => id !== category._id)
+                              });
+                            }
+                          }}
+                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{category.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {formData.categories.length === 0 && (
+                    <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
+                  )}
                 </div>
 
                 <div>
@@ -759,7 +828,7 @@ function ProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Price</label>
                     <input
@@ -776,6 +845,16 @@ function ProductsPage() {
                       type="number"
                       value={formData.originalPrice}
                       onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) || 0 })}
+                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Deposit</label>
+                    <input
+                      type="number"
+                      value={formData.deposit}
+                      onChange={(e) => setFormData({ ...formData, deposit: parseFloat(e.target.value) || 0 })}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       placeholder="0.00"
                     />

@@ -9,6 +9,7 @@ import {
   ShoppingBagIcon, 
   TagIcon, 
   ShoppingCartIcon,
+  BuildingStorefrontIcon,
   Bars3Icon,
   XMarkIcon,
   UserCircleIcon,
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Users', href: '/users', icon: UsersIcon },
   { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Categories', href: '/categories', icon: TagIcon },
+  { name: 'Merchants', href: '/merchants', icon: BuildingStorefrontIcon },
   { name: 'Orders', href: '/orders', icon: ShoppingCartIcon },
 ];
 
