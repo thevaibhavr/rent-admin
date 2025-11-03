@@ -266,6 +266,30 @@ class ApiService {
     await this.api.delete(`/bookings/${id}`);
   }
 
+  async cancelBooking(id: string, reason?: string): Promise<Booking> {
+    const response = await this.api.put<ApiResponse<{ booking: Booking }>>(`/bookings/${id}/cancel`, { reason });
+    return response.data.data!.booking;
+  }
+
+  async getBookingStats(filters?: { filter?: string; week?: string; month?: number; year?: number }): Promise<DashboardStats> {
+    const params = new URLSearchParams();
+    if (filters?.filter) {
+      params.append('filter', filters.filter);
+      if (filters.filter === 'week' && filters.week) {
+        params.append('week', filters.week);
+      } else if (filters.filter === 'month' && filters.month !== undefined && filters.year) {
+        params.append('month', filters.month.toString());
+        params.append('year', filters.year.toString());
+      } else if (filters.filter === 'year' && filters.year) {
+        params.append('year', filters.year.toString());
+      }
+    }
+    const queryString = params.toString();
+    const url = `/bookings/stats/summary${queryString ? `?${queryString}` : ''}`;
+    const response: AxiosResponse<ApiResponse<{ summary: DashboardStats }>> = await this.api.get(url);
+    return response.data.data!.summary;
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; message: string }> {
     const response: AxiosResponse<{ status: string; message: string }> = await this.api.get('/health');

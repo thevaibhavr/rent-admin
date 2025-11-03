@@ -148,6 +148,18 @@ export interface DashboardStats {
   completedOrders: number;
   cancelledOrders: number;
   totalRevenue: number;
+  // Booking statistics
+  totalBookings?: number;
+  totalCustomers?: number;
+  newCustomers?: number;
+  repeatCustomers?: number;
+  totalAdvance?: number;
+  totalPending?: number;
+  totalSecurity?: number;
+  activeBookings?: number;
+  completedBookings?: number;
+  canceledBookings?: number;
+  pendingBookings?: number;
 }
 
 export interface LoginCredentials {
@@ -207,19 +219,42 @@ export interface BookingCustomer {
   mobile?: string;
 }
 
-export interface Booking {
-  _id: string;
-  bookingId: string;
-  dressId: string;
+export interface BookingItem {
+  dressId: string | Product;
   priceAfterBargain: number;
   advance: number;
   pending: number;
   securityAmount: number;
   sendDate?: string;
   receiveDate?: string;
+  dressImage?: string;
+}
+
+export interface Booking {
+  _id: string;
+  bookingId: string;
+  items?: BookingItem[];
+  // Legacy fields for backward compatibility
+  dressId?: string | Product;
+  priceAfterBargain?: number;
+  advance?: number;
+  pending?: number;
+  securityAmount?: number;
+  sendDate?: string;
+  receiveDate?: string;
+  dressImage?: string;
+  // Common fields
   customer: BookingCustomer;
   referenceCustomer?: string;
-  dressImage?: string;
+  // Status fields
+  status?: 'active' | 'completed' | 'canceled';
+  canceledAt?: string;
+  cancelReason?: string;
+  // Auto-calculated totals
+  totalPrice?: number;
+  totalAdvance?: number;
+  totalPending?: number;
+  totalSecurity?: number;
   createdAt: string;
   updatedAt: string;
 }

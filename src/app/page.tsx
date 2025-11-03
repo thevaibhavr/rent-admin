@@ -3,9 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { 
   UsersIcon, 
-  ShoppingBagIcon, 
-  ShoppingCartIcon, 
+  CalendarIcon, 
   CurrencyDollarIcon,
+  UserPlusIcon,
+  ArrowPathIcon,
+  LockClosedIcon,
+  ClockIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { 
   XAxis, 
@@ -24,22 +28,81 @@ import { DashboardStats } from '@/types';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-// COLORS array removed as it's not being used
-
 function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState<string>('');
+  const [selectedWeek, setSelectedWeek] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+
+  // Generate week options for the current year
+  const getWeekOptions = () => {
+    const weeks = [];
+    const currentYear = new Date().getFullYear();
+    // Generate 52 weeks for the year
+    for (let i = 1; i <= 52; i++) {
+      const weekStr = `${currentYear}-${i.toString().padStart(2, '0')}`;
+      // Calculate the date range for the week using ISO week calculation
+      const [yearNum, weekNum] = weekStr.split('-').map(Number);
+      // Jan 4 is always in week 1
+      const simple = new Date(yearNum, 0, 4);
+      const jan4Day = simple.getDay() || 7; // Convert Sunday (0) to 7
+      const weekStart = new Date(simple);
+      weekStart.setDate(simple.getDate() - jan4Day + 1 + (weekNum - 1) * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      
+      // Only include weeks that are valid (not extending too far into next year)
+      if (weekStart.getFullYear() === yearNum || weekStart.getFullYear() === yearNum - 1) {
+        const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        weeks.push({ value: weekStr, label: `Week ${i} (${startStr} - ${endStr})` });
+      }
+    }
+    return weeks;
+  };
+
+  // Month names
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Generate year options (current year and 5 years back)
+  const getYearOptions = () => {
+    const years = [];
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i <= 5; i++) {
+      years.push(currentYear - i);
+    }
+    return years;
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
+      setLoading(true);
       try {
-        const [orderStats, userStats] = await Promise.all([
-          apiService.getOrderStats(),
+        const filters: any = {};
+        if (filterType) {
+          filters.filter = filterType;
+          if (filterType === 'week' && selectedWeek) {
+            filters.week = selectedWeek;
+          } else if (filterType === 'month') {
+            filters.month = selectedMonth;
+            filters.year = selectedYear;
+          } else if (filterType === 'year') {
+            filters.year = selectedYear;
+          }
+        }
+
+        const [bookingStats, userStats] = await Promise.all([
+          apiService.getBookingStats(Object.keys(filters).length > 0 ? filters : undefined),
           apiService.getUserStats()
         ]);
 
         setStats({
-          ...orderStats,
+          ...bookingStats,
           ...userStats
         });
       } catch (error) {
@@ -51,7 +114,23 @@ function DashboardPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [filterType, selectedWeek, selectedMonth, selectedYear]);
+
+  const handleFilterChange = (type: string) => {
+    setFilterType(type);
+    if (type === 'week') {
+      // Set default to current week if not selected
+      if (!selectedWeek) {
+        const now = new Date();
+        const year = now.getFullYear();
+        // Calculate current week number
+        const start = new Date(year, 0, 1);
+        const days = Math.floor((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+        const weekNumber = Math.ceil((days + start.getDay() + 1) / 7);
+        setSelectedWeek(`${year}-${weekNumber.toString().padStart(2, '0')}`);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -69,13 +148,12 @@ function DashboardPage() {
     );
   }
 
-  const orderStatusData = [
-    { name: 'Pending', value: stats.pendingOrders, color: '#F59E0B' },
-    { name: 'Completed', value: stats.completedOrders, color: '#10B981' },
-    { name: 'Cancelled', value: stats.cancelledOrders, color: '#EF4444' },
+  const bookingStatusData = [
+    { name: 'Active', value: stats.activeBookings || 0, color: '#3B82F6' },
+    { name: 'Completed', value: stats.completedBookings || 0, color: '#10B981' },
+    { name: 'Canceled', value: stats.canceledBookings || 0, color: '#DC2626' },
+    { name: 'Pending', value: stats.pendingBookings || 0, color: '#F59E0B' },
   ];
-
-  // userData removed as it's not being used
 
   const monthlyRevenueData = [
     { month: 'Jan', revenue: 4000 },
@@ -129,42 +207,150 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Overview of your clothing rental business
-        </p>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Overview of your booking and customer statistics
+          </p>
+        </div>
+        
+        {/* Filter Section */}
+        <div className="bg-white shadow rounded-lg p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <FunnelIcon className="h-5 w-5 text-gray-400" />
+              <label className="text-sm font-medium text-gray-700">Filter:</label>
+            </div>
+            
+            <select
+              value={filterType}
+              onChange={(e) => handleFilterChange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">All Time</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+              <option value="year">Year</option>
+            </select>
+
+            {filterType === 'week' && (
+              <select
+                value={selectedWeek}
+                onChange={(e) => setSelectedWeek(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {getWeekOptions().map((week) => (
+                  <option key={week.value} value={week.value}>
+                    {week.label}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {filterType === 'month' && (
+              <>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  {monthNames.map((month, index) => (
+                    <option key={index} value={index}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  {getYearOptions().map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {filterType === 'year' && (
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {getYearOptions().map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {filterType && (
+              <button
+                onClick={() => {
+                  setFilterType('');
+                  setSelectedWeek('');
+                  setSelectedMonth(new Date().getMonth());
+                  setSelectedYear(new Date().getFullYear());
+                }}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Users"
-          value={stats.totalUsers}
+          title="Total Customers"
+          value={stats.totalCustomers || 0}
           icon={UsersIcon}
-          change={12}
-          changeType="up"
         />
         <StatCard
-          title="Total Orders"
-          value={stats.totalOrders}
-          icon={ShoppingCartIcon}
-          change={8}
-          changeType="up"
+          title="Total Bookings"
+          value={stats.totalBookings || 0}
+          icon={CalendarIcon}
         />
         <StatCard
-          title="Total Products"
-          value={stats.totalUsers} // This would need to be added to the API
-          icon={ShoppingBagIcon}
-          change={-3}
-          changeType="down"
+          title="New Customers"
+          value={stats.newCustomers || 0}
+          icon={UserPlusIcon}
         />
+        <StatCard
+          title="Repeat Customers"
+          value={stats.repeatCustomers || 0}
+          icon={ArrowPathIcon}
+        />
+      </div>
+
+      {/* Additional Stats Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Revenue"
-          value={stats.totalRevenue}
+          value={stats.totalRevenue || 0}
           icon={CurrencyDollarIcon}
-          change={15}
-          changeType="up"
+        />
+        <StatCard
+          title="Total Advance"
+          value={stats.totalAdvance || 0}
+          icon={CurrencyDollarIcon}
+        />
+        <StatCard
+          title="Total Pending"
+          value={stats.totalPending || 0}
+          icon={ClockIcon}
+        />
+        <StatCard
+          title="Security Deposits"
+          value={stats.totalSecurity || 0}
+          icon={LockClosedIcon}
         />
       </div>
 
@@ -184,22 +370,22 @@ function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Order Status Chart */}
+        {/* Booking Status Chart */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Order Status Distribution</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Booking Status Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={orderStatusData}
+                data={bookingStatusData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                // label={({ name, percent }) => `${namce} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {orderStatusData.map((entry, index) => (
+                {bookingStatusData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -211,68 +397,78 @@ function DashboardPage() {
 
       {/* Additional Stats */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* User Stats */}
+        {/* Booking Stats */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">User Statistics</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Booking Statistics</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Active Users</span>
-              <span className="text-sm font-medium text-green-600">{stats.activeUsers}</span>
+              <span className="text-sm text-gray-500">Active Bookings</span>
+              <span className="text-sm font-medium text-blue-600">{stats.activeBookings || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Inactive Users</span>
-              <span className="text-sm font-medium text-gray-600">{stats.inactiveUsers}</span>
+              <span className="text-sm text-gray-500">Completed Bookings</span>
+              <span className="text-sm font-medium text-green-600">{stats.completedBookings || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Admin Users</span>
-              <span className="text-sm font-medium text-blue-600">{stats.adminUsers}</span>
+              <span className="text-sm text-gray-500">Pending Bookings</span>
+              <span className="text-sm font-medium text-yellow-600">{stats.pendingBookings || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Regular Users</span>
-              <span className="text-sm font-medium text-purple-600">{stats.regularUsers}</span>
+              <span className="text-sm text-gray-500">Canceled Bookings</span>
+              <span className="text-sm font-medium text-red-600">{stats.canceledBookings || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Total Bookings</span>
+              <span className="text-sm font-medium text-gray-900">{stats.totalBookings || 0}</span>
             </div>
           </div>
         </div>
 
-        {/* Order Stats */}
+        {/* Customer Stats */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Order Statistics</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Statistics</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Pending Orders</span>
-              <span className="text-sm font-medium text-yellow-600">{stats.pendingOrders}</span>
+              <span className="text-sm text-gray-500">Total Customers</span>
+              <span className="text-sm font-medium text-purple-600">{stats.totalCustomers || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Completed Orders</span>
-              <span className="text-sm font-medium text-green-600">{stats.completedOrders}</span>
+              <span className="text-sm text-gray-500">New Customers</span>
+              <span className="text-sm font-medium text-green-600">{stats.newCustomers || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Cancelled Orders</span>
-              <span className="text-sm font-medium text-red-600">{stats.cancelledOrders}</span>
+              <span className="text-sm text-gray-500">Repeat Customers</span>
+              <span className="text-sm font-medium text-blue-600">{stats.repeatCustomers || 0}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Repeat Rate</span>
+              <span className="text-sm font-medium text-gray-900">
+                {stats.totalCustomers ? ((stats.repeatCustomers || 0) / stats.totalCustomers * 100).toFixed(1) : 0}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Financial Summary */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Financial Summary</h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Total Revenue</span>
-              <span className="text-sm font-medium text-green-600">${stats.totalRevenue.toLocaleString()}</span>
+              <span className="text-sm font-medium text-green-600">${(stats.totalRevenue || 0).toLocaleString()}</span>
             </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-              View Recent Orders
-            </button>
-            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-              Add New Product
-            </button>
-            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-              Manage Categories
-            </button>
-            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-              User Management
-            </button>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Advance Collected</span>
+              <span className="text-sm font-medium text-blue-600">${(stats.totalAdvance || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Pending Amount</span>
+              <span className="text-sm font-medium text-yellow-600">${(stats.totalPending || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Security Deposits</span>
+              <span className="text-sm font-medium text-purple-600">${(stats.totalSecurity || 0).toLocaleString()}</span>
+            </div>
           </div>
         </div>
       </div>
