@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import ImageUpload from './ImageUpload';
 import { apiService } from '@/services/api';
-import { Product, Booking, BookingItem } from '@/types';
+import { Product, Booking } from '@/types';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface BookingItemFormData {
