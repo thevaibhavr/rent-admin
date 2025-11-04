@@ -16,6 +16,9 @@ interface BookingItemFormData {
   sendDate: string;
   receiveDate: string;
   dressImage?: string;
+  useDress?: string;
+  useDressDate?: string;
+  useDressTime?: 'morning' | 'evening';
 }
 
 interface BookingFormData {
@@ -49,7 +52,10 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
           securityAmount: item.securityAmount ?? 0,
           sendDate: item.sendDate ? item.sendDate.split('T')[0] : '',
           receiveDate: item.receiveDate ? item.receiveDate.split('T')[0] : '',
-          dressImage: item.dressImage ?? ''
+          dressImage: item.dressImage ?? '',
+          useDress: item.useDress ?? '',
+          useDressDate: item.useDressDate ? item.useDressDate.split('T')[0] : '',
+          useDressTime: item.useDressTime ?? undefined
         }))
       : [{
           dressId: '',
@@ -59,7 +65,8 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
           securityAmount: 0,
           sendDate: '',
           receiveDate: '',
-          dressImage: ''
+          dressImage: '',
+          useDress: ''
         }],
     customer: {
       name: initial.customer?.name ?? '',
@@ -168,7 +175,10 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
         securityAmount: 0,
         sendDate: '',
         receiveDate: '',
-        dressImage: ''
+        dressImage: '',
+        useDress: '',
+        useDressDate: '',
+        useDressTime: undefined
       }]
     }));
   };
@@ -191,23 +201,70 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
   const handleSubmit = async () => {
     try {
-      // Convert form data to API format
-      const payload = {
-        items: form.items.map(item => ({
-          dressId: item.dressId,
-          priceAfterBargain: item.priceAfterBargain,
-          advance: item.advance,
-          pending: item.pending,
-          securityAmount: item.securityAmount,
-          sendDate: item.sendDate || undefined,
-          receiveDate: item.receiveDate || undefined,
-          dressImage: item.dressImage || undefined
-        })),
+      // Convert form data to API format - remove any _id fields
+      const payload: {
+        items: Array<{
+          dressId: string;
+          priceAfterBargain: number;
+          advance: number;
+          pending: number;
+          securityAmount: number;
+          sendDate?: string;
+          receiveDate?: string;
+          dressImage?: string;
+          useDress?: string;
+          useDressDate?: string;
+          useDressTime?: 'morning' | 'evening';
+        }>;
+        customer: {
+          name: string;
+          image?: string;
+          location?: string;
+          mobile?: string;
+        };
+        referenceCustomer?: string;
+      } = {
+        items: form.items.map(item => {
+          const cleanItem: {
+            dressId: string;
+            priceAfterBargain: number;
+            advance: number;
+            pending: number;
+            securityAmount: number;
+            sendDate?: string;
+            receiveDate?: string;
+            dressImage?: string;
+            useDress?: string;
+            useDressDate?: string;
+            useDressTime?: 'morning' | 'evening';
+          } = {
+            dressId: item.dressId,
+            priceAfterBargain: item.priceAfterBargain,
+            advance: item.advance,
+            pending: item.pending,
+            securityAmount: item.securityAmount,
+            sendDate: item.sendDate || undefined,
+            receiveDate: item.receiveDate || undefined,
+            dressImage: item.dressImage || undefined,
+            useDress: item.useDress || undefined,
+            useDressDate: item.useDressDate || undefined,
+            useDressTime: item.useDressTime || undefined
+          };
+          return cleanItem;
+        }),
         customer: form.customer,
         referenceCustomer: form.referenceCustomer || undefined
       };
 
-      const booking = await apiService.createBooking(payload);
+      let booking;
+      if (initial._id) {
+        // Update existing booking
+        booking = await apiService.updateBooking(initial._id, payload);
+      } else {
+        // Create new booking
+        booking = await apiService.createBooking(payload);
+      }
+      
       if (onSaved) onSaved(booking);
       alert('Booking saved successfully!');
     } catch (err) {
@@ -487,6 +544,43 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     onChange={(e) => handleItemChange(index, 'receiveDate', e.target.value)} 
                     className="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black" 
                   />
+                </div>
+              </div>
+
+              {/* Use Dress Fields */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Use Dress (e.g., Wedding, Party, etc.)</label>
+                  <input 
+                    type="text" 
+                    value={item.useDress || ''} 
+                    onChange={(e) => handleItemChange(index, 'useDress', e.target.value)} 
+                    placeholder="Enter the occasion or use for this dress"
+                    className="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black" 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Use Dress Date</label>
+                    <input 
+                      type="date" 
+                      value={item.useDressDate || ''} 
+                      onChange={(e) => handleItemChange(index, 'useDressDate', e.target.value)} 
+                      className="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                    <select 
+                      value={item.useDressTime || ''} 
+                      onChange={(e) => handleItemChange(index, 'useDressTime', e.target.value as 'morning' | 'evening' | '')}
+                      className="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black"
+                    >
+                      <option value="">Select time</option>
+                      <option value="morning">Morning</option>
+                      <option value="evening">Evening</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>

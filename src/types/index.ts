@@ -228,6 +228,9 @@ export interface BookingItem {
   sendDate?: string;
   receiveDate?: string;
   dressImage?: string;
+  useDress?: string;
+  useDressDate?: string;
+  useDressTime?: 'morning' | 'evening';
 }
 
 export interface Booking {
