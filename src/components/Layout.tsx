@@ -30,7 +30,15 @@ const navigation = [
   { name: 'Categories', href: '/categories', icon: TagIcon },
   { name: 'Merchants', href: '/merchants', icon: BuildingStorefrontIcon },
   { name: 'Orders', href: '/orders', icon: ShoppingCartIcon },
-  { name: 'Bookings', href: '/bookings', icon: CalendarIcon },
+  {
+    name: 'Bookings',
+    href: '/bookings',
+    icon: CalendarIcon,
+    children: [
+      { name: 'View Bookings', href: '/bookings/view' },
+      { name: 'Create Booking', href: '/bookings/add' },
+    ],
+  },
   { name: 'Highlighted', href: '/highlighted', icon: StarIcon },
 ];
 
@@ -60,25 +68,47 @@ export default function Layout({ children }: LayoutProps) {
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.children?.some(child => pathname === child.href));
+              const isChildActive = (href: string) => pathname === href;
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    isActive
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon
-                    className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                      isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
+                <div key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                      isActive
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
-                  />
-                  {item.name}
-                </Link>
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    {item.icon && (
+                      <item.icon
+                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                          isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
+                        }`}
+                      />
+                    )}
+                    {item.name}
+                  </Link>
+                  {item.children && (
+                    <div className="ml-8 mt-1 space-y-1">
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          className={`group flex items-center px-2 py-1.5 text-sm font-medium rounded-md ${
+                            isChildActive(child.href)
+                              ? 'text-indigo-700 bg-indigo-50'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -93,24 +123,45 @@ export default function Layout({ children }: LayoutProps) {
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.children?.some(child => pathname === child.href));
+              const isChildActive = (href: string) => pathname === href;
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    isActive
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <item.icon
-                    className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                      isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
+                <div key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                      isActive
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
-                  />
-                  {item.name}
-                </Link>
+                  >
+                    {item.icon && (
+                      <item.icon
+                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                          isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
+                        }`}
+                      />
+                    )}
+                    {item.name}
+                  </Link>
+                  {item.children && (
+                    <div className="ml-8 mt-1 space-y-1">
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          className={`group flex items-center px-2 py-1.5 text-sm font-medium rounded-md ${
+                            isChildActive(child.href)
+                              ? 'text-indigo-700 bg-indigo-50'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
