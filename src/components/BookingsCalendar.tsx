@@ -208,7 +208,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg ">
         <div className="p-4">
           <style jsx global>{`
             .rbc-event {
