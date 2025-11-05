@@ -220,6 +220,8 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
               font-size: 0.875rem !important;
               color: #000000 !important;
               box-shadow: none !important;
+              position: relative !important;
+              flex-shrink: 0 !important;
             }
             .rbc-event-content {
               padding: 0 !important;
@@ -238,16 +240,16 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
               box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
             .rbc-month-view .rbc-event {
-              min-height: 60px;
-              min-width: 60px;
-              max-height: 80px;
-              max-width: 80px;
-              height: 60px;
-              width: 60px;
+              min-height: 35px;
+              min-width: 35px;
+              max-height: 40px;
+              max-width: 40px;
+              height: 35px;
+              width: 35px;
             }
             .rbc-month-view .rbc-event-content {
-              min-height: 60px;
-              min-width: 60px;
+              min-height: 35px;
+              min-width: 35px;
               height: 100%;
               width: 100%;
             }
@@ -273,6 +275,49 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
               flex-wrap: wrap;
               gap: 4px;
               align-items: flex-start;
+            }
+            /* Stack multiple events in month view */
+            .rbc-month-view .rbc-date-cell .rbc-events-container {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 4px;
+              align-items: flex-start;
+              justify-content: flex-start;
+            }
+            .rbc-month-view .rbc-date-cell {
+              position: relative;
+            }
+            .rbc-month-view .rbc-day-bg {
+              position: relative;
+            }
+            /* Ensure multiple events are visible in month view cells */
+            .rbc-month-row {
+              min-height: 120px;
+            }
+            .rbc-day-bg + .rbc-events-container {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 4px;
+              padding: 2px;
+            }
+            /* Container for events in month view date cells */
+            .rbc-date-cell {
+              position: relative;
+            }
+            .rbc-date-cell > div {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 4px;
+              align-items: flex-start;
+            }
+            /* Ensure events container in month view allows wrapping */
+            .rbc-month-view .rbc-date-cell .rbc-events-container,
+            .rbc-month-view .rbc-date-cell > div:not(.rbc-day-bg) {
+              display: flex !important;
+              flex-wrap: wrap !important;
+              gap: 4px !important;
+              align-items: flex-start !important;
+              justify-content: flex-start !important;
             }
             /* Remove default event styling */
             .rbc-event-label {
@@ -358,6 +403,137 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
             }
             .rbc-agenda-event-cell {
               color: #000000 !important;
+            }
+            /* Popup styling for "+X more" events */
+            .rbc-overlay {
+              position: fixed !important;
+              z-index: 9999 !important;
+              background: white !important;
+              border: 1px solid #e5e7eb !important;
+              border-radius: 8px !important;
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+              padding: 16px !important;
+              max-width: 450px !important;
+              width: calc(100vw - 32px) !important;
+              max-height: 85vh !important;
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              left: 50% !important;
+              top: 50% !important;
+              transform: translate(-50%, -50%) !important;
+              margin: 16px !important;
+            }
+            @media (min-width: 640px) {
+              .rbc-overlay {
+                width: 90vw !important;
+                max-width: 450px !important;
+              }
+            }
+            .rbc-overlay-header {
+              font-weight: 600 !important;
+              font-size: 1rem !important;
+              margin-bottom: 12px !important;
+              padding-bottom: 12px !important;
+              border-bottom: 2px solid #e5e7eb !important;
+              color: #000000 !important;
+            }
+            .rbc-overlay-event {
+              padding: 8px !important;
+              margin-bottom: 6px !important;
+              border-radius: 6px !important;
+              cursor: pointer !important;
+              transition: all 0.2s !important;
+              display: flex !important;
+              align-items: center !important;
+              gap: 8px !important;
+              border: 1px solid transparent !important;
+            }
+            .rbc-overlay-event:hover {
+              background-color: #f3f4f6 !important;
+              border-color: #e5e7eb !important;
+            }
+            .rbc-overlay-event:last-child {
+              margin-bottom: 0 !important;
+            }
+            /* Style event images in popup */
+            .rbc-overlay-event .rbc-event-content {
+              display: flex !important;
+              align-items: center !important;
+              gap: 8px !important;
+              width: 100% !important;
+              height: auto !important;
+              min-height: auto !important;
+              padding: 0 !important;
+            }
+            .rbc-overlay-event .rbc-event-content img {
+              width: 42px !important;
+              height: 42px !important;
+              min-width: 42px !important;
+              min-height: 42px !important;
+              max-width: 42px !important;
+              max-height: 42px !important;
+              border-radius: 50% !important;
+              object-fit: cover !important;
+              border: 2px solid #fff !important;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+              flex-shrink: 0 !important;
+            }
+            /* Ensure popup events don't have circular constraints */
+            .rbc-overlay .rbc-event {
+              border-radius: 8px !important;
+              height: auto !important;
+              min-height: auto !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 0 8px 0 !important;
+              display: flex !important;
+              align-items: center !important;
+            }
+            /* Override any image sizing in popup events */
+            .rbc-overlay .rbc-event img {
+              width: 60px !important;
+              height: 60px !important;
+              min-width: 60px !important;
+              min-height: 60px !important;
+              max-width: 60px !important;
+              max-height: 60px !important;
+            }
+            /* Ensure event content wrapper doesn't force image size */
+            .rbc-overlay .rbc-event .rbc-event-content {
+              width: auto !important;
+              height: auto !important;
+              min-width: auto !important;
+              min-height: auto !important;
+            }
+            .rbc-overlay .rbc-event:last-child {
+              margin-bottom: 0 !important;
+            }
+            /* Style event text in popup */
+            .rbc-overlay .rbc-event-label {
+              display: none !important;
+            }
+            .rbc-overlay .rbc-event-content {
+              white-space: normal !important;
+              overflow: visible !important;
+              text-overflow: clip !important;
+            }
+            /* Ensure event titles are visible in popup */
+            .rbc-overlay-event .rbc-event-content::after {
+              content: attr(title) !important;
+              margin-left: 12px !important;
+              color: #000000 !important;
+              font-size: 0.875rem !important;
+              flex: 1 !important;
+            }
+            /* Add backdrop overlay */
+            .rbc-overlay-backdrop {
+              position: fixed !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              bottom: 0 !important;
+              background-color: rgba(0, 0, 0, 0.5) !important;
+              z-index: 9998 !important;
             }
           `}</style>
           <Calendar
@@ -489,7 +665,14 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 return (
                   <div 
                     {...props}
-                    style={{ ...props.style, padding: 0, margin: '1px' }}
+                    style={{ 
+                      ...props.style, 
+                      padding: 0, 
+                      margin: '2px',
+                      position: 'relative',
+                      display: 'inline-block',
+                      verticalAlign: 'top'
+                    }}
                   />
                 );
               }
