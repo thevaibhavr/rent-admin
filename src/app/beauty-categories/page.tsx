@@ -1,6 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
+// Helper function to extract error message safely
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+  return defaultMessage;
+};
 import { 
   PlusIcon, 
   PencilIcon, 
@@ -26,14 +37,22 @@ interface Category {
 
 type CategoryType = 'winter' | 'summer' | 'cloth' | 'woman-care' | 'kids' | 'perfume';
 
+interface CategoryFormData {
+  name: string;
+  description: string;
+  image: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 const categoryTypeConfig = {
   winter: {
     label: 'Winter Categories',
     api: {
       getAll: () => apiService.getWinterCategories(),
       getById: (id: string) => apiService.getWinterCategory(id),
-      create: (data: any) => apiService.createWinterCategory(data),
-      update: (id: string, data: any) => apiService.updateWinterCategory(id, data),
+      create: (data: CategoryFormData) => apiService.createWinterCategory(data),
+      update: (id: string, data: CategoryFormData) => apiService.updateWinterCategory(id, data),
       delete: (id: string) => apiService.deleteWinterCategory(id)
     }
   },
@@ -42,8 +61,8 @@ const categoryTypeConfig = {
     api: {
       getAll: () => apiService.getSummerCategories(),
       getById: (id: string) => apiService.getSummerCategory(id),
-      create: (data: any) => apiService.createSummerCategory(data),
-      update: (id: string, data: any) => apiService.updateSummerCategory(id, data),
+      create: (data: CategoryFormData) => apiService.createSummerCategory(data),
+      update: (id: string, data: CategoryFormData) => apiService.updateSummerCategory(id, data),
       delete: (id: string) => apiService.deleteSummerCategory(id)
     }
   },
@@ -52,8 +71,8 @@ const categoryTypeConfig = {
     api: {
       getAll: () => apiService.getClothCategories(),
       getById: (id: string) => apiService.getClothCategory(id),
-      create: (data: any) => apiService.createClothCategory(data),
-      update: (id: string, data: any) => apiService.updateClothCategory(id, data),
+      create: (data: CategoryFormData) => apiService.createClothCategory(data),
+      update: (id: string, data: CategoryFormData) => apiService.updateClothCategory(id, data),
       delete: (id: string) => apiService.deleteClothCategory(id)
     }
   },
@@ -62,8 +81,8 @@ const categoryTypeConfig = {
     api: {
       getAll: () => apiService.getWomanCareCategories(),
       getById: (id: string) => apiService.getWomanCareCategory(id),
-      create: (data: any) => apiService.createWomanCareCategory(data),
-      update: (id: string, data: any) => apiService.updateWomanCareCategory(id, data),
+      create: (data: CategoryFormData) => apiService.createWomanCareCategory(data),
+      update: (id: string, data: CategoryFormData) => apiService.updateWomanCareCategory(id, data),
       delete: (id: string) => apiService.deleteWomanCareCategory(id)
     }
   },
@@ -72,8 +91,8 @@ const categoryTypeConfig = {
     api: {
       getAll: () => apiService.getKidsCategories(),
       getById: (id: string) => apiService.getKidsCategory(id),
-      create: (data: any) => apiService.createKidsCategory(data),
-      update: (id: string, data: any) => apiService.updateKidsCategory(id, data),
+      create: (data: CategoryFormData) => apiService.createKidsCategory(data),
+      update: (id: string, data: CategoryFormData) => apiService.updateKidsCategory(id, data),
       delete: (id: string) => apiService.deleteKidsCategory(id)
     }
   },
@@ -82,8 +101,8 @@ const categoryTypeConfig = {
     api: {
       getAll: () => apiService.getPerfumeCategories(),
       getById: (id: string) => apiService.getPerfumeCategory(id),
-      create: (data: any) => apiService.createPerfumeCategory(data),
-      update: (id: string, data: any) => apiService.updatePerfumeCategory(id, data),
+      create: (data: CategoryFormData) => apiService.createPerfumeCategory(data),
+      update: (id: string, data: CategoryFormData) => apiService.updatePerfumeCategory(id, data),
       delete: (id: string) => apiService.deletePerfumeCategory(id)
     }
   }
@@ -104,11 +123,7 @@ function BeautyCategoriesPage() {
     isActive: true
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [activeCategoryType]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await categoryTypeConfig[activeCategoryType].api.getAll();
@@ -119,7 +134,11 @@ function BeautyCategoriesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeCategoryType]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCreateCategory = () => {
     setEditingCategory(null);
@@ -156,8 +175,8 @@ function BeautyCategoriesPage() {
       await categoryTypeConfig[activeCategoryType].api.delete(id);
       toast.success('Category deleted successfully');
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to delete category');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to delete category'));
     }
   };
 
@@ -173,8 +192,8 @@ function BeautyCategoriesPage() {
       }
       setShowModal(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save category');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to save category'));
     }
   };
 

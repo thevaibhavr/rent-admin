@@ -1,6 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+
+// Helper function to extract error message safely
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+  return defaultMessage;
+};
 import { PlusIcon, XMarkIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -13,6 +24,43 @@ import MultiImageUpload from '@/components/MultiImageUpload';
 interface Category {
   _id: string;
   name: string;
+}
+
+interface SupercategoryResponse {
+  _id: string;
+  name: string;
+}
+
+interface BeautyCategoryResponse {
+  _id: string;
+  name: string;
+  supercategory: string | { name: string };
+}
+
+interface RoutineCategoryResponse {
+  _id: string;
+  name: string;
+}
+
+interface ProductData {
+  name: string;
+  description: string;
+  mrp?: number;
+  originalPrice: number;
+  merchantPrice?: number;
+  packOf?: number;
+  images: string[];
+  color: string;
+  brand?: string;
+  material?: string;
+  tags: string[];
+  searchKeywords?: string[];
+  categories: string[];
+  sizes: Array<{ size: string; isAvailable: boolean; quantity: number }>;
+  rating?: number;
+  ratingUsersNumber?: number;
+  stock?: number;
+  minDeliveryTime?: string;
 }
 
 function BeautyProductsPage() {
@@ -94,22 +142,22 @@ function BeautyProductsPage() {
       const allCategories: Category[] = [];
       
       if (supercategoriesResponse && supercategoriesResponse.supercategories) {
-        supercategoriesResponse.supercategories.forEach((sc: any) => {
+        supercategoriesResponse.supercategories.forEach((sc: SupercategoryResponse) => {
           allCategories.push({ _id: sc._id, name: `Supercategory: ${sc.name}` });
         });
       }
 
       if (beautyCategoriesResponse && beautyCategoriesResponse.categories) {
-        beautyCategoriesResponse.categories.forEach((cat: any) => {
-          const supercategoryName = typeof cat.supercategory === 'object' 
-            ? cat.supercategory.name 
+        beautyCategoriesResponse.categories.forEach((cat: BeautyCategoryResponse) => {
+          const supercategoryName = typeof cat.supercategory === 'object'
+            ? cat.supercategory.name
             : 'Unknown';
           allCategories.push({ _id: cat._id, name: `Category: ${cat.name} (${supercategoryName})` });
         });
       }
 
       if (routineCategoriesResponse && routineCategoriesResponse.categories) {
-        routineCategoriesResponse.categories.forEach((cat: any) => {
+        routineCategoriesResponse.categories.forEach((cat: RoutineCategoryResponse) => {
           allCategories.push({ _id: cat._id, name: `Routine: ${cat.name}` });
         });
       }
@@ -164,11 +212,7 @@ function BeautyProductsPage() {
     setLoading(true);
     try {
       // Determine category type and prepare product data
-      const selectedCat = categories.find(c => c._id === selectedCategory);
-      const isSupercategory = selectedCat?.name.startsWith('Supercategory:');
-      const isRoutine = selectedCat?.name.startsWith('Routine:');
-
-      const productData: any = {
+      const productData: ProductData = {
         name: productForm.name,
         description: productForm.description,
         mrp: productForm.mrp ? parseFloat(productForm.mrp) : undefined,
@@ -218,9 +262,9 @@ function BeautyProductsPage() {
         minDeliveryTime: ''
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating product:', error);
-      toast.error(error.response?.data?.message || 'Failed to create product');
+      toast.error(getErrorMessage(error, 'Failed to create product'));
     } finally {
       setLoading(false);
     }
@@ -233,9 +277,9 @@ function BeautyProductsPage() {
       await apiService.deleteProduct(productId);
       toast.success('Product deleted successfully');
       fetchProducts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting product:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete product');
+      toast.error(getErrorMessage(error, 'Failed to delete product'));
     }
   };
 
@@ -419,8 +463,8 @@ function BeautyProductsPage() {
                   <div className="p-4">
                     <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      {product.categories && product.categories.length > 0 
-                        ? product.categories.map((cat: any) => cat.name || cat).join(', ')
+                      {product.categories && product.categories.length > 0
+                        ? product.categories.map((cat: unknown) => (cat as { name?: string })?.name || String(cat)).join(', ')
                         : product.category?.name || 'No category'
                       }
                     </p>
@@ -444,7 +488,7 @@ function BeautyProductsPage() {
                     </div>
                     {product.sizes && product.sizes.length > 0 && (
                       <div className="mt-2 text-xs text-gray-500">
-                        Sizes: {product.sizes.map((s: any) => s.size).join(', ')}
+                        Sizes: {product.sizes.map((s: unknown) => (s as { size?: string })?.size || 'Unknown').join(', ')}
                       </div>
                     )}
                     <div className="mt-3 flex justify-between">

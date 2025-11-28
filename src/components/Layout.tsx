@@ -15,6 +15,23 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const { user, loading } = useAuth();
 
+  const isBeautyUser = user?.email === 'moment@gmail.com';
+  const isClothsUser = user && !isBeautyUser; // Any user that's not beauty user is cloths user
+
+  // Redirect beauty user away from cloths routes
+  useEffect(() => {
+    if (isBeautyUser && pathname !== '/login' && !pathname?.startsWith('/beauty')) {
+      router.push('/beauty');
+    }
+  }, [isBeautyUser, pathname, router]);
+
+  // Redirect cloths user away from beauty routes
+  useEffect(() => {
+    if (isClothsUser && pathname?.startsWith('/beauty')) {
+      router.push('/');
+    }
+  }, [isClothsUser, pathname, router]);
+
   // Don't show layout on login page
   if (pathname === '/login') {
     return <>{children}</>;
@@ -34,23 +51,6 @@ export default function Layout({ children }: LayoutProps) {
     router.push('/login');
     return null;
   }
-
-  const isBeautyUser = user.email === 'moment@gmail.com';
-  const isClothsUser = !isBeautyUser; // Any user that's not beauty user is cloths user
-
-  // Redirect beauty user away from cloths routes
-  useEffect(() => {
-    if (isBeautyUser && pathname !== '/login' && !pathname?.startsWith('/beauty')) {
-      router.push('/beauty');
-    }
-  }, [isBeautyUser, pathname, router]);
-
-  // Redirect cloths user away from beauty routes
-  useEffect(() => {
-    if (isClothsUser && pathname?.startsWith('/beauty')) {
-      router.push('/');
-    }
-  }, [isClothsUser, pathname, router]);
 
   // Use BeautyLayout for beauty user
   if (isBeautyUser) {

@@ -73,13 +73,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Special login for moment@gmail.com
       if (email === 'moment@gmail.com' && password === '1234567') {
         const mockUser = {
-          id: 'special-admin',
+          _id: 'special-admin',
           name: 'Beauty Admin',
           email: 'moment@gmail.com',
-          role: 'admin',
+          role: 'admin' as const,
           phone: '',
-          address: null,
-          avatar: null
+          address: undefined,
+          avatar: undefined,
+          isActive: true,
+          emailVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         };
         const mockToken = 'special-admin-token-' + Date.now();
         

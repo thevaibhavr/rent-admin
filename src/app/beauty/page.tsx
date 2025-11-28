@@ -1,6 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
+// Helper function to extract error message safely
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+  return defaultMessage;
+};
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   PlusIcon, 
@@ -58,7 +69,7 @@ function BeautyPage() {
   useEffect(() => {
     const tab = searchParams?.get('tab');
     if (tab && ['supercategories', 'categories', 'routine-categories'].includes(tab)) {
-      setActiveTab(tab as any);
+      setActiveTab(tab as 'supercategories' | 'categories' | 'routine-categories');
     }
   }, [searchParams]);
   const [supercategories, setSupercategories] = useState<Supercategory[]>([]);
@@ -103,11 +114,7 @@ function BeautyPage() {
     isActive: true
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [activeTab, selectedSupercategoryFilter]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'supercategories') {
@@ -130,7 +137,11 @@ function BeautyPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, selectedSupercategoryFilter]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCreateSupercategory = () => {
     setEditingSupercategory(null);
@@ -168,8 +179,8 @@ function BeautyPage() {
       await apiService.deleteSupercategory(id);
       toast.success('Supercategory deleted successfully');
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to delete supercategory');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to delete supercategory'));
     }
   };
 
@@ -185,8 +196,8 @@ function BeautyPage() {
       }
       setShowSupercategoryModal(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save supercategory');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to save supercategory'));
     }
   };
 
@@ -230,8 +241,8 @@ function BeautyPage() {
       await apiService.deleteBeautyCategory(id);
       toast.success('Category deleted successfully');
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to delete category');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to delete category'));
     }
   };
 
@@ -251,8 +262,8 @@ function BeautyPage() {
       }
       setShowCategoryModal(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save category');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to save category'));
     }
   };
 
@@ -292,8 +303,8 @@ function BeautyPage() {
       await apiService.deleteRoutineCategory(id);
       toast.success('Routine category deleted successfully');
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to delete routine category');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to delete routine category'));
     }
   };
 
@@ -309,8 +320,8 @@ function BeautyPage() {
       }
       setShowRoutineCategoryModal(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save routine category');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to save routine category'));
     }
   };
 

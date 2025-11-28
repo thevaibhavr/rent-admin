@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  HomeIcon, 
-  UsersIcon, 
-  ShoppingBagIcon, 
-  TagIcon, 
+import {
+  HomeIcon,
+  UsersIcon,
+  ShoppingBagIcon,
+  TagIcon,
   ShoppingCartIcon,
   BuildingStorefrontIcon,
   StarIcon,
@@ -15,8 +15,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   UserCircleIcon,
-  ArrowRightOnRectangleIcon,
-  SparklesIcon
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
