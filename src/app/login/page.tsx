@@ -35,7 +35,12 @@ export default function LoginPage() {
     try {
       await login(data.email, data.password);
       toast.success('Login successful!');
-      router.push('/');
+      // Redirect to beauty page for special admin, otherwise dashboard
+      if (data.email === 'moment@gmail.com' && data.password === '1234567') {
+        router.push('/beauty');
+      } else {
+        router.push('/');
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
       toast.error(errorMessage);
@@ -69,6 +74,22 @@ export default function LoginPage() {
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to your admin account
           </p>
+          <div className="mt-4 space-y-2">
+            <div className="p-3 bg-pink-50 border border-pink-200 rounded-md">
+              <p className="text-xs text-pink-800 text-center">
+                <strong>Beauty Section:</strong><br />
+                Email: moment@gmail.com<br />
+                Password: 1234567
+              </p>
+            </div>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-xs text-blue-800 text-center">
+                <strong>Cloths Section:</strong><br />
+                Email: admin@clothingrental.com<br />
+                Password: (Your admin password)
+              </p>
+            </div>
+          </div>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="rounded-md shadow-sm -space-y-px">

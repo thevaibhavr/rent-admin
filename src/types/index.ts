@@ -40,7 +40,7 @@ export interface Merchant {
 }
 
 export interface ProductSize {
-  size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'Free Size';
+  size: string;
   isAvailable: boolean;
   quantity: number;
 }
@@ -53,15 +53,17 @@ export interface Product {
   categories: Category[];
   Owner?: Merchant;
   images: string[];
-  price: number;
+  price?: number;
+  merchantPrice?: number;
   originalPrice: number;
+  packOf?: number;
   deposit?: number;
   sizes: ProductSize[];
-  color: string;
+  color?: string;
   brand?: string;
   material?: string;
-  condition: 'Excellent' | 'Very Good' | 'Good' | 'Fair';
-  rentalDuration: number;
+  condition?: 'Excellent' | 'Very Good' | 'Good' | 'Fair';
+  rentalDuration?: number;
   isAvailable: boolean;
   isFeatured: boolean;
   isHighlighted: boolean;
@@ -185,12 +187,14 @@ export interface CreateProductData {
   categories: string[];
   Owner?: string;
   images: string[];
-  price: number;
+  price?: number;
+  merchantPrice?: number;
   originalPrice: number;
+  packOf?: number;
   deposit?: number;
   sizes: ProductSize[];
-  color: string;
-  rentalDuration: number;
+  color?: string;
+  rentalDuration?: number;
   condition?: 'Excellent' | 'Very Good' | 'Good' | 'Fair';
   brand?: string;
   material?: string;

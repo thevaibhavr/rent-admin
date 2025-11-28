@@ -20,6 +20,7 @@ function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -56,6 +57,7 @@ function ProductsPage() {
       const response: PaginatedResponse<Product> = await apiService.getProducts(currentPage, 12, filters);
       setProducts(Array.isArray(response.data.products) ? response.data.products : []);
       setTotalPages(response.data.totalPages || 1);
+      setTotalProducts(response.data.total || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to load products');
@@ -272,6 +274,35 @@ function ProductsPage() {
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Products</h3>
+          </div>
+          <div className="flex gap-2">
+            {(searchTerm || selectedCategory) && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('');
+                  setCurrentPage(1);
+                }}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Clear Filters
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+                setCurrentPage(1);
+              }}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Show All Products
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label htmlFor="search" className="block text-sm font-medium text-gray-700">
@@ -282,7 +313,10 @@ function ProductsPage() {
                 type="text"
                 id="search"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="block w-full pr-10 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Search by name..."
               />
@@ -294,12 +328,15 @@ function ProductsPage() {
 
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-              Category
+              Filter by Category
             </label>
             <select
               id="category"
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setCurrentPage(1);
+              }}
               className="mt-1 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="">All Categories</option>
@@ -310,13 +347,66 @@ function ProductsPage() {
               ))}
             </select>
           </div>
+
+          <div className="flex items-end">
+            <div className="w-full bg-gray-50 rounded-md p-3 border border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">Products Count</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {totalProducts > 0 ? (
+                  <>
+                    {products.length} of {totalProducts} {searchTerm || selectedCategory ? 'filtered' : 'total'}
+                  </>
+                ) : (
+                  '0'
+                )}
+              </p>
+            </div>
+          </div>
         </div>
+        {(searchTerm || selectedCategory) && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Active filters:</span>
+              {searchTerm && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                  Search: {searchTerm}
+                </span>
+              )}
+              {selectedCategory && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                  Category: {categories.find(c => c._id === selectedCategory)?.name || 'Unknown'}
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Products Grid */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-6">
-          {products.map((product) => (
+        {products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg mb-4">
+              {searchTerm || selectedCategory 
+                ? 'No products found matching your filters.' 
+                : 'No products found. Create one to get started.'}
+            </p>
+            {(searchTerm || selectedCategory) && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('');
+                  setCurrentPage(1);
+                }}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Clear Filters and Show All
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-6">
+            {products.map((product) => (
             <div key={product._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-w-1 aspect-h-1 w-full">
                 <Image 
@@ -379,10 +469,11 @@ function ProductsPage() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {products.length > 0 && totalPages > 1 && (
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
               <button

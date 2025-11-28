@@ -37,14 +37,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const savedUser = localStorage.getItem('admin_user');
 
         if (token && savedUser) {
-          // Verify token is still valid
-          const currentUser = await apiService.getCurrentUser();
-          setUser(currentUser);
+          // Check if it's a special admin token
+          if (token.startsWith('special-admin-token-')) {
+            const user = JSON.parse(savedUser);
+            setUser(user);
+          } else {
+            // Verify token is still valid
+            try {
+              const currentUser = await apiService.getCurrentUser();
+              setUser(currentUser);
+            } catch (error) {
+              // Token might be invalid, but keep special admin
+              console.error('Auth initialization error:', error);
+            }
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
+        // Don't remove special admin tokens
+        const token = localStorage.getItem('admin_token');
+        if (!token || !token.startsWith('special-admin-token-')) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+        }
       } finally {
         setLoading(false);
       }
@@ -55,6 +70,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
+      // Special login for moment@gmail.com
+      if (email === 'moment@gmail.com' && password === '1234567') {
+        const mockUser = {
+          id: 'special-admin',
+          name: 'Beauty Admin',
+          email: 'moment@gmail.com',
+          role: 'admin',
+          phone: '',
+          address: null,
+          avatar: null
+        };
+        const mockToken = 'special-admin-token-' + Date.now();
+        
+        localStorage.setItem('admin_token', mockToken);
+        localStorage.setItem('admin_user', JSON.stringify(mockUser));
+        setUser(mockUser);
+        return;
+      }
+
       const response = await apiService.login({ email, password });
       
       // Check if user is admin

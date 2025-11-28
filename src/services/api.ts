@@ -23,8 +23,10 @@ class ApiService {
 
   constructor() {
     // this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+    this.baseURL = 'https://rent-moment-backend-production.up.railway.app/api';
     // this.baseURL = 'https://cloth-backend-tpce.onrender.com/api';
-    this.baseURL = 'https://rent-moment-backend-971455500628.asia-south1.run.app/api';
+    // this.baseURL = 'https://rent-moment-backend-971455500628.asia-south1.run.app/api';
     this.api = axios.create({
       baseURL: this.baseURL,
       headers: {
@@ -37,6 +39,7 @@ class ApiService {
       (config) => {
         const token = localStorage.getItem('admin_token');
         if (token) {
+          // For special admin tokens, still send them but backend will handle them
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -144,6 +147,11 @@ class ApiService {
 
   async createProduct(data: CreateProductData): Promise<Product> {
     const response: AxiosResponse<ApiResponse<{ product: Product }>> = await this.api.post('/products', data);
+    return response.data.data!.product;
+  }
+
+  async createBeautyProduct(data: any): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ product: any }>> = await this.api.post('/beauty-products', data);
     return response.data.data!.product;
   }
 
@@ -288,6 +296,232 @@ class ApiService {
     const url = `/bookings/stats/summary${queryString ? `?${queryString}` : ''}`;
     const response: AxiosResponse<ApiResponse<{ summary: DashboardStats }>> = await this.api.get(url);
     return response.data.data!.summary;
+  }
+
+  // Supercategories endpoints
+  async getSupercategories(): Promise<{ supercategories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ supercategories: any[] }>> = await this.api.get('/supercategories/all');
+    return response.data.data!;
+  }
+
+  async getSupercategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ supercategory: any }>> = await this.api.get(`/supercategories/${id}`);
+    return response.data.data!.supercategory;
+  }
+
+  async createSupercategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ supercategory: any }>> = await this.api.post('/supercategories', data);
+    return response.data.data!.supercategory;
+  }
+
+  async updateSupercategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ supercategory: any }>> = await this.api.put(`/supercategories/${id}`, data);
+    return response.data.data!.supercategory;
+  }
+
+  async deleteSupercategory(id: string): Promise<void> {
+    await this.api.delete(`/supercategories/${id}`);
+  }
+
+  // Beauty Categories endpoints
+  async getBeautyCategories(supercategory?: string): Promise<{ categories: any[] }> {
+    const url = supercategory ? `/beauty-categories/all?supercategory=${supercategory}` : '/beauty-categories/all';
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get(url);
+    return response.data.data!;
+  }
+
+  async getBeautyCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/beauty-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createBeautyCategory(data: { name: string; description?: string; image: string; supercategory: string; sortOrder?: number; products?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/beauty-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateBeautyCategory(id: string, data: Partial<{ name: string; description?: string; image: string; supercategory: string; sortOrder?: number; isActive?: boolean; products?: number }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/beauty-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteBeautyCategory(id: string): Promise<void> {
+    await this.api.delete(`/beauty-categories/${id}`);
+  }
+
+  // Routine Categories endpoints
+  async getRoutineCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/routine-categories/all');
+    return response.data.data!;
+  }
+
+  async getRoutineCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/routine-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createRoutineCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/routine-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateRoutineCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/routine-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteRoutineCategory(id: string): Promise<void> {
+    await this.api.delete(`/routine-categories/${id}`);
+  }
+
+  // Winter Categories endpoints
+  async getWinterCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/winter-categories/all');
+    return response.data.data!;
+  }
+
+  async getWinterCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/winter-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createWinterCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/winter-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateWinterCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/winter-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteWinterCategory(id: string): Promise<void> {
+    await this.api.delete(`/winter-categories/${id}`);
+  }
+
+  // Summer Categories endpoints
+  async getSummerCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/summer-categories/all');
+    return response.data.data!;
+  }
+
+  async getSummerCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/summer-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createSummerCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/summer-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateSummerCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/summer-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteSummerCategory(id: string): Promise<void> {
+    await this.api.delete(`/summer-categories/${id}`);
+  }
+
+  // Cloth Categories endpoints
+  async getClothCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/cloth-categories/all');
+    return response.data.data!;
+  }
+
+  async getClothCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/cloth-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createClothCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/cloth-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateClothCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/cloth-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteClothCategory(id: string): Promise<void> {
+    await this.api.delete(`/cloth-categories/${id}`);
+  }
+
+  // Woman Care Categories endpoints
+  async getWomanCareCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/woman-care-categories/all');
+    return response.data.data!;
+  }
+
+  async getWomanCareCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/woman-care-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createWomanCareCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/woman-care-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateWomanCareCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/woman-care-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteWomanCareCategory(id: string): Promise<void> {
+    await this.api.delete(`/woman-care-categories/${id}`);
+  }
+
+  // Kids Categories endpoints
+  async getKidsCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/kids-categories/all');
+    return response.data.data!;
+  }
+
+  async getKidsCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/kids-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createKidsCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/kids-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updateKidsCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/kids-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deleteKidsCategory(id: string): Promise<void> {
+    await this.api.delete(`/kids-categories/${id}`);
+  }
+
+  // Perfume Categories endpoints
+  async getPerfumeCategories(): Promise<{ categories: any[] }> {
+    const response: AxiosResponse<ApiResponse<{ categories: any[] }>> = await this.api.get('/perfume-categories/all');
+    return response.data.data!;
+  }
+
+  async getPerfumeCategory(id: string): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.get(`/perfume-categories/${id}`);
+    return response.data.data!.category;
+  }
+
+  async createPerfumeCategory(data: { name: string; description?: string; image: string; sortOrder?: number }): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.post('/perfume-categories', data);
+    return response.data.data!.category;
+  }
+
+  async updatePerfumeCategory(id: string, data: Partial<{ name: string; description?: string; image: string; sortOrder?: number; isActive?: boolean }>): Promise<any> {
+    const response: AxiosResponse<ApiResponse<{ category: any }>> = await this.api.put(`/perfume-categories/${id}`, data);
+    return response.data.data!.category;
+  }
+
+  async deletePerfumeCategory(id: string): Promise<void> {
+    await this.api.delete(`/perfume-categories/${id}`);
   }
 
   // Health check
