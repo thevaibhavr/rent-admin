@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, dateFnsLocalizer, View, Event } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
+import type { Event } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -67,6 +68,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
   
   bookings.forEach(booking => {
     const isCanceled = booking.status === 'canceled';
+    const isCompleted = booking.status === 'completed';
     
     // Handle new structure with items array
     if (booking.items && booking.items.length > 0) {
@@ -104,7 +106,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
         
         events.push({
           id: `${booking._id}-item-${itemIndex}`,
-      title: `${booking.customer.name} - ${dressName}${isCanceled ? ' (Canceled)' : ''}`,
+      title: `${booking.customer.name} - ${dressName}${isCanceled ? ' (Canceled)' : isCompleted ? ' (Completed)' : ''}`,
       start: startDate,
       end: endDate,
       resource: booking,
@@ -147,6 +149,9 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
       setSelected(null);
       fetchBookings();
       if (onRefresh) onRefresh();
+
+      // Trigger dashboard refresh
+      localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
     } catch (err) {
       console.error('Failed to update booking:', err);
       alert('Failed to update booking');
@@ -167,6 +172,10 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
       setIsEditing(false);
       fetchBookings();
       if (onRefresh) onRefresh();
+
+      // Trigger dashboard refresh
+      localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
+
       alert('Booking deleted successfully');
     } catch (err) {
       console.error('Failed to delete booking:', err);
@@ -194,6 +203,10 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
       setIsEditing(false);
       fetchBookings();
       if (onRefresh) onRefresh();
+
+      // Trigger dashboard refresh
+      localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
+
       alert('Booking canceled successfully');
     } catch (err) {
       console.error('Failed to cancel booking:', err);
@@ -565,6 +578,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 }
                 
                 const isCanceled = event.resource.status === 'canceled';
+                const isCompleted = event.resource.status === 'completed';
                 
                 // Get dress image from event
                 const dressImage = event.dressImage;
@@ -600,17 +614,17 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                   `${customerName} - ${dressName}`,
                   useDateInfo || `Send: ${format(event.start, 'MMM d, yyyy')}`,
                   !useDateInfo && `Return: ${format(event.end, 'MMM d, yyyy')}`,
-                  isCanceled ? 'Status: Canceled' : ''
+                  isCanceled ? 'Status: Canceled' : isCompleted ? 'Status: Completed' : 'Status: Active'
                 ].filter(Boolean).join('\n');
                 
                 return (
-                  <div 
+                  <div
                     title={tooltip}
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       handleSelectEvent(event);
                     }}
-                    className={`rbc-event-content cursor-pointer overflow-hidden ${isCanceled ? 'opacity-60' : ''} hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2 transition-all`}
+                    className={`rbc-event-content cursor-pointer overflow-hidden ${isCanceled ? 'opacity-60' : ''} ${isCompleted ? 'ring-2 ring-green-500 ring-offset-2' : ''} hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2 transition-all`}
                     style={{ 
                       height: '100%', 
                       width: '100%',
@@ -652,9 +666,14 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                             <span className="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded-full">✕</span>
                           </div>
                         )}
+                        {isCompleted && (
+                          <div className="absolute inset-0 bg-green-500/50 flex items-center justify-center rounded-full">
+                            <span className="text-xs font-bold text-white bg-green-600 px-2 py-1 rounded-full">✓</span>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className={`w-full h-full flex items-center justify-center text-xs p-1 rounded-full ${isCanceled ? 'bg-red-500/70' : 'bg-indigo-500'} text-white font-medium`} style={{ borderRadius: '50%' }}>
+                      <div className={`w-full h-full flex items-center justify-center text-xs p-1 rounded-full ${isCanceled ? 'bg-red-500/70' : isCompleted ? 'bg-green-500/70' : 'bg-indigo-500'} text-white font-medium`} style={{ borderRadius: '50%' }}>
                         {dressName.substring(0, 10)}
                       </div>
                     )}
@@ -690,7 +709,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 {isEditing ? 'Edit Booking' : 'Booking Details'}
               </h3>
               <div className="flex gap-2">
-                {!isEditing && selected.status !== 'canceled' && (
+                {!isEditing && selected.status !== 'canceled' && selected.status !== 'completed' && (
                   <>
                     <button
                       onClick={() => setIsEditing(true)}
@@ -715,6 +734,11 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 {selected.status === 'canceled' && (
                   <div className="px-3 py-1 bg-red-100 text-red-800 rounded text-sm font-medium">
                     Canceled
+                  </div>
+                )}
+                {selected.status === 'completed' && (
+                  <div className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">
+                    ✓ Payment Completed
                   </div>
                 )}
                 <button

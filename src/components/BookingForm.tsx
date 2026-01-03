@@ -6,6 +6,7 @@ import ImageUpload from './ImageUpload';
 import { apiService } from '@/services/api';
 import { Product, Booking } from '@/types';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface BookingItemFormData {
   dressId: string;
@@ -30,6 +31,7 @@ interface BookingFormData {
     mobile?: string;
   };
   referenceCustomer?: string;
+  status?: 'active' | 'completed' | 'canceled';
 }
 
 interface Props {
@@ -42,8 +44,10 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [openDropdowns, setOpenDropdowns] = useState<Record<number, boolean>>({});
+  const [completeAmount, setCompleteAmount] = useState<number>(0);
+
   const [form, setForm] = useState<BookingFormData>({
-    items: initial.items && initial.items.length > 0 
+    items: initial.items && initial.items.length > 0
       ? initial.items.map(item => ({
           dressId: typeof item.dressId === 'string' ? item.dressId : item.dressId._id,
           priceAfterBargain: item.priceAfterBargain ?? 0,
@@ -74,7 +78,8 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
       location: initial.customer?.location ?? '',
       mobile: initial.customer?.mobile ?? ''
     },
-    referenceCustomer: initial.referenceCustomer ?? ''
+    referenceCustomer: initial.referenceCustomer ?? '',
+    status: initial.status ?? 'active'
   });
 
   // Calculate totals
@@ -199,6 +204,86 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
     }));
   };
 
+  const handleCompletePayment = async () => {
+    try {
+      if (completeAmount <= 0) {
+        toast.error('Please enter a valid complete payment amount');
+        return;
+      }
+
+      // Create payload with complete payment data
+      const payload: {
+        items: Array<{
+          dressId: string;
+          priceAfterBargain: number;
+          advance: number;
+          pending: number;
+          securityAmount: number;
+          sendDate?: string;
+          receiveDate?: string;
+          dressImage?: string;
+          useDress?: string;
+          useDressDate?: string;
+          useDressTime?: 'morning' | 'evening';
+        }>;
+        customer: {
+          name: string;
+          image?: string;
+          location?: string;
+          mobile?: string;
+        };
+        referenceCustomer?: string;
+        status: 'completed';
+        totalPaid?: number;
+      } = {
+        items: form.items.map(item => {
+          const cleanItem: {
+            dressId: string;
+            priceAfterBargain: number;
+            advance: number;
+            pending: number;
+            securityAmount: number;
+            sendDate?: string;
+            receiveDate?: string;
+            dressImage?: string;
+            useDress?: string;
+            useDressDate?: string;
+            useDressTime?: 'morning' | 'evening';
+          } = {
+            dressId: item.dressId,
+            priceAfterBargain: item.priceAfterBargain,
+            advance: completeAmount, // Set advance to the complete payment amount
+            pending: 0, // Set pending to 0 since payment is complete
+            securityAmount: item.securityAmount,
+            sendDate: item.sendDate || undefined,
+            receiveDate: item.receiveDate || undefined,
+            dressImage: item.dressImage || undefined,
+            useDress: item.useDress || undefined,
+            useDressDate: item.useDressDate || undefined,
+            useDressTime: item.useDressTime || undefined
+          };
+          return cleanItem;
+        }),
+        customer: form.customer,
+        referenceCustomer: form.referenceCustomer || undefined,
+        status: 'completed',
+        totalPaid: completeAmount // Store the completed payment amount
+      };
+
+      // Update existing booking with complete payment
+      const booking = await apiService.updateBooking(initial._id!, payload);
+
+      if (onSaved) onSaved(booking);
+      toast.success(`Payment of ₹${completeAmount} completed successfully! Booking status updated to completed.`);
+
+      // Trigger dashboard refresh
+      localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : 'Failed to complete payment');
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       // Convert form data to API format - remove any _id fields
@@ -223,6 +308,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
           mobile?: string;
         };
         referenceCustomer?: string;
+        status?: 'active' | 'completed' | 'canceled';
       } = {
         items: form.items.map(item => {
           const cleanItem: {
@@ -253,7 +339,8 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
           return cleanItem;
         }),
         customer: form.customer,
-        referenceCustomer: form.referenceCustomer || undefined
+        referenceCustomer: form.referenceCustomer || undefined,
+        status: form.status
       };
 
       let booking;
@@ -264,12 +351,15 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
         // Create new booking
         booking = await apiService.createBooking(payload);
       }
-      
+
       if (onSaved) onSaved(booking);
-      alert('Booking saved successfully!');
+      toast.success('Booking saved successfully!');
+
+      // Trigger dashboard refresh
+      localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Failed to save booking');
+      toast.error(err instanceof Error ? err.message : 'Failed to save booking');
     }
   };
 
@@ -611,10 +701,39 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
         </div>
       </div>
 
+      {/* Complete Payment Section */}
+      {initial._id && (
+        <div className="border-2 border-green-500 p-4 rounded-lg bg-green-50">
+          <h3 className="font-semibold text-gray-900 mb-3">Complete Payment</h3>
+          <div className="flex items-end gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Complete Amount *</label>
+              <input
+                type="number"
+                value={completeAmount || ''}
+                onChange={(e) => setCompleteAmount(Number(e.target.value))}
+                placeholder="Enter complete payment amount"
+                className="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm px-3 py-2 text-black"
+                min="0"
+                step="0.01"
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter the total amount received to complete this booking</p>
+            </div>
+            <button
+              onClick={handleCompletePayment}
+              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium whitespace-nowrap"
+              title="Complete full payment and mark booking as completed"
+            >
+              Complete Payment
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Submit Button */}
       <div className="flex justify-end">
-        <button 
-          onClick={handleSubmit} 
+        <button
+          onClick={handleSubmit}
           className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
         >
           Save Booking

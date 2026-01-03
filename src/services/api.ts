@@ -147,9 +147,11 @@ class ApiService {
   constructor() {
     // this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-    this.baseURL = 'https://rent-moment-backend-production.up.railway.app/api';
+    // this.baseURL = 'https://rent-moment-backend-production.up.railway.app/api';
     // this.baseURL = 'https://cloth-backend-tpce.onrender.com/api';
     // this.baseURL = 'https://rent-moment-backend-971455500628.asia-south1.run.app/api';
+    this.baseURL = 'https://rent-moment-backend-production-8cc3.up.railway.app/api';
+
     this.api = axios.create({
       baseURL: this.baseURL,
       headers: {

@@ -158,6 +158,7 @@ export interface DashboardStats {
   totalAdvance?: number;
   totalPending?: number;
   totalSecurity?: number;
+  totalPaid?: number; // Total amount paid for completed bookings
   activeBookings?: number;
   completedBookings?: number;
   canceledBookings?: number;
@@ -262,6 +263,7 @@ export interface Booking {
   totalAdvance?: number;
   totalPending?: number;
   totalSecurity?: number;
+  totalPaid?: number; // Total amount paid for completed bookings
   createdAt: string;
   updatedAt: string;
 }

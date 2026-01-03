@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   UsersIcon, 
   CalendarIcon, 
@@ -79,47 +79,66 @@ function DashboardPage() {
     return years;
   };
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const filters: {
-          filter?: string;
-          week?: string;
-          month?: number;
-          year?: number;
-        } = {};
-        if (filterType) {
-          filters.filter = filterType;
-          if (filterType === 'week' && selectedWeek) {
-            filters.week = selectedWeek;
-          } else if (filterType === 'month') {
-            filters.month = selectedMonth;
-            filters.year = selectedYear;
-          } else if (filterType === 'year') {
-            filters.year = selectedYear;
-          }
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    try {
+      const filters: {
+        filter?: string;
+        week?: string;
+        month?: number;
+        year?: number;
+      } = {};
+      if (filterType) {
+        filters.filter = filterType;
+        if (filterType === 'week' && selectedWeek) {
+          filters.week = selectedWeek;
+        } else if (filterType === 'month') {
+          filters.month = selectedMonth;
+          filters.year = selectedYear;
+        } else if (filterType === 'year') {
+          filters.year = selectedYear;
         }
+      }
 
-        const [bookingStats, userStats] = await Promise.all([
-          apiService.getBookingStats(Object.keys(filters).length > 0 ? filters : undefined),
-          apiService.getUserStats()
-        ]);
+      const [bookingStats, userStats] = await Promise.all([
+        apiService.getBookingStats(Object.keys(filters).length > 0 ? filters : undefined),
+        apiService.getUserStats()
+      ]);
 
-        setStats({
-          ...bookingStats,
-          ...userStats
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        toast.error('Failed to load dashboard statistics');
-      } finally {
-        setLoading(false);
+      setStats({
+        ...bookingStats,
+        ...userStats
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      toast.error('Failed to load dashboard statistics');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterType, selectedWeek, selectedMonth, selectedYear]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Check for dashboard refresh trigger
+  useEffect(() => {
+    const checkForRefresh = () => {
+      const refreshNeeded = localStorage.getItem('dashboardRefreshNeeded');
+      if (refreshNeeded) {
+        localStorage.removeItem('dashboardRefreshNeeded');
+        fetchStats();
       }
     };
 
-    fetchStats();
-  }, [filterType, selectedWeek, selectedMonth, selectedYear]);
+    // Check immediately on mount
+    checkForRefresh();
+
+    // Check every 2 seconds for updates
+    const interval = setInterval(checkForRefresh, 2000);
+
+    return () => clearInterval(interval);
+  }, [fetchStats]);
 
   const handleFilterChange = (type: string) => {
     setFilterType(type);
@@ -357,6 +376,11 @@ function DashboardPage() {
           value={stats.totalSecurity || 0}
           icon={LockClosedIcon}
         />
+        <StatCard
+          title="Total Paid"
+          value={stats.totalPaid || 0}
+          icon={CurrencyDollarIcon}
+        />
       </div>
 
       {/* Charts Grid */}
@@ -474,6 +498,59 @@ function DashboardPage() {
               <span className="text-sm text-gray-500">Security Deposits</span>
               <span className="text-sm font-medium text-purple-600">${(stats.totalSecurity || 0).toLocaleString()}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Total Amount Paid</span>
+              <span className="text-sm font-medium text-green-600">${(stats.totalPaid || 0).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Completed Payments Summary */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Status</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div>
+                  <div className="text-sm font-medium text-green-800">Completed Payments</div>
+                  <div className="text-xs text-green-600">{stats.completedBookings || 0} bookings fully paid</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-600">${(stats.totalPaid || 0).toLocaleString()}</div>
+                <div className="text-xs text-green-500">Total paid</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <div>
+                  <div className="text-sm font-medium text-yellow-800">Pending Payments</div>
+                  <div className="text-xs text-yellow-600">{stats.pendingBookings || 0} bookings awaiting payment</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-yellow-600">${(stats.totalPending || 0).toLocaleString()}</div>
+                <div className="text-xs text-yellow-500">Still due</div>
+              </div>
+            </div>
+
+            {(stats.completedBookings || 0) > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-800">Payment Completion Rate</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {(stats.totalBookings || 0) ? Math.round(((stats.completedBookings || 0) / (stats.totalBookings || 0)) * 100) : 0}%
+                </div>
+                <div className="text-xs text-blue-600 mt-1">
+                  {(stats.completedBookings || 0)} of {(stats.totalBookings || 0)} bookings completed
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
