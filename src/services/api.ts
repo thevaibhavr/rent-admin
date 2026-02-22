@@ -146,8 +146,7 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    // this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    this.baseURL = 'https://rent-moment-hfdbfea8abcmcwh4.centralindia-01.azurewebsites.net/api';
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://rent-moment-hfdbfea8abcmcwh4.centralindia-01.azurewebsites.net/api';
     
 
     this.api = axios.create({
