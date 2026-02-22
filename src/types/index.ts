@@ -159,6 +159,14 @@ export interface DashboardStats {
   totalPending?: number;
   totalSecurity?: number;
   totalPaid?: number; // Total amount paid for completed bookings
+  totalBookingAmount?: number; // Total booking amounts collected
+  totalFinalPayment?: number; // Total final payments
+  totalTransportCost?: number; // Total transport costs
+  totalDryCleaningCost?: number; // Total dry cleaning costs
+  totalRepairCost?: number; // Total repair costs
+  totalOperationalCost?: number; // Total operational costs
+  grossProfit?: number; // Total gross profit
+  netProfit?: number; // Total net profit
   activeBookings?: number;
   completedBookings?: number;
   canceledBookings?: number;
@@ -222,26 +230,101 @@ export interface BookingCustomer {
   image?: string;
   location?: string;
   mobile?: string;
+  email?: string;
+  emergencyContact?: {
+    name?: string;
+    phone?: string;
+  };
+  measurements?: {
+    bust?: number;
+    waist?: number;
+    hips?: number;
+    shoulder?: number;
+    length?: number;
+    size?: string;
+  };
 }
 
 export interface BookingItem {
   dressId: string | Product;
+  originalPrice?: number;
   priceAfterBargain: number;
-  advance: number;
-  pending: number;
-  securityAmount: number;
+  discount?: number;
+
+  // Payment tracking
+  bookingAmount?: number; // Initial booking payment
+  advance?: number; // Additional advance payments
+  pending?: number; // Remaining amount to be paid
+  finalPayment?: number; // Full payment made before delivery
+  totalPaid?: number; // Total amount received
+
+  securityAmount?: number;
+
+  // Additional costs
+  additionalCosts?: Array<{reason: string, amount: number}>;
+
+  // Booking & Timeline
+  bookingDate?: string;
+
+  // Transport & Delivery
   sendDate?: string;
+  deliveryMethod?: 'parcel' | 'bus' | 'courier' | 'hand_delivery' | 'other';
+  transportCost?: number; // Cost of transportation
+  transportPaidBy?: 'business' | 'customer';
+
+  // Usage & Return
   receiveDate?: string;
   dressImage?: string;
   useDress?: string;
   useDressDate?: string;
-  useDressTime?: 'morning' | 'evening';
+  useDressTime?: 'morning' | 'day' | 'evening';
+
+  // Processing & Quality Check
+  dryCleaningCost?: number;
+  conditionOnReturn?: 'excellent' | 'very_good' | 'good' | 'fair' | 'damaged' | 'lost';
+  damageDescription?: string;
+  repairCost?: number;
+  isRepairable?: boolean;
+
+  // Financial calculations
+  totalCost?: number; // transportCost + dryCleaningCost + repairCost
+  profit?: number; // totalPaid - totalCost
+  status?: 'booked' | 'paid' | 'sent' | 'delivered' | 'in_use' | 'returned' | 'processing' | 'completed' | 'damaged' | 'lost';
+}
+
+export interface Customer {
+  _id: string;
+  name: string;
+  mobile: string;
+  email?: string;
+  location?: string;
+  emergencyContact?: {
+    name?: string;
+    phone?: string;
+  };
+  measurements?: {
+    bust?: number;
+    waist?: number;
+    hips?: number;
+    shoulder?: number;
+    length?: number;
+    size?: string;
+  };
+  avatar?: string;
+  notes?: string;
+  totalBookings?: number;
+  totalSpent?: number;
+  lastBookingDate?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Booking {
   _id: string;
   bookingId: string;
   items?: BookingItem[];
+
   // Legacy fields for backward compatibility
   dressId?: string | Product;
   priceAfterBargain?: number;
@@ -251,19 +334,47 @@ export interface Booking {
   sendDate?: string;
   receiveDate?: string;
   dressImage?: string;
+
   // Common fields
   customer: BookingCustomer;
+  deliveryAddress?: string;
+  rentalDuration?: number;
+  returnDeadline?: string;
+  paymentMethod?: 'cash' | 'online' | 'card' | 'bank_transfer' | 'upi';
+  specialInstructions?: string;
   referenceCustomer?: string;
-  // Status fields
+
+  // Workflow status
   status?: 'active' | 'completed' | 'canceled';
   canceledAt?: string;
   cancelReason?: string;
-  // Auto-calculated totals
-  totalPrice?: number;
-  totalAdvance?: number;
-  totalPending?: number;
-  totalSecurity?: number;
-  totalPaid?: number; // Total amount paid for completed bookings
+
+  // Financial summaries (auto-calculated)
+  totalPrice?: number; // Sum of all item priceAfterBargain
+  totalBookingAmount?: number; // Sum of all bookingAmount
+  totalAdvance?: number; // Sum of all advance payments
+  totalFinalPayment?: number; // Sum of all finalPayment
+  totalPaid?: number; // Sum of all totalPaid
+  totalPending?: number; // Sum of all pending amounts
+  totalSecurity?: number; // Sum of all securityAmount
+
+  // Cost tracking
+  totalTransportCost?: number; // Sum of all transportCost
+  totalDryCleaningCost?: number; // Sum of all dryCleaningCost
+  totalRepairCost?: number; // Sum of all repairCost
+  totalOperationalCost?: number; // transportCost + dryCleaningCost + repairCost
+
+  // Profit/Loss calculation
+  grossProfit?: number; // totalPaid - totalPrice
+  netProfit?: number; // grossProfit - totalOperationalCost
+
+  // Workflow milestones
+  workflowStage?: 'booking' | 'payment' | 'delivery' | 'usage' | 'return' | 'processing' | 'completed';
+
+  // Notes and comments
+  adminNotes?: string;
+  customerNotes?: string;
+
   createdAt: string;
   updatedAt: string;
 }

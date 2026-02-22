@@ -14,7 +14,8 @@ import {
   CreateMerchantData,
   Merchant,
   UpdateOrderStatusData,
-  Booking
+  Booking,
+  Customer
 } from '@/types';
 
 // Beauty-related interfaces
@@ -146,11 +147,8 @@ class ApiService {
 
   constructor() {
     // this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
-    // this.baseURL = 'https://rent-moment-backend-production.up.railway.app/api';
-    // this.baseURL = 'https://cloth-backend-tpce.onrender.com/api';
-    // this.baseURL = 'https://rent-moment-backend-971455500628.asia-south1.run.app/api';
-    this.baseURL = 'https://rent-moment-backend-production-8cc3.up.railway.app/api';
+    this.baseURL = 'https://rent-moment-hfdbfea8abcmcwh4.centralindia-01.azurewebsites.net/api';
+    
 
     this.api = axios.create({
       baseURL: this.baseURL,
@@ -420,6 +418,48 @@ class ApiService {
     const queryString = params.toString();
     const url = `/bookings/stats/summary${queryString ? `?${queryString}` : ''}`;
     const response: AxiosResponse<ApiResponse<{ summary: DashboardStats }>> = await this.api.get(url);
+    return response.data.data!.summary;
+  }
+
+  // Customers endpoints
+  async getCustomers(page = 1, limit = 10, search?: string): Promise<PaginatedResponse<Customer>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    if (search) {
+      params.append('search', search);
+    }
+    const response: AxiosResponse<PaginatedResponse<Customer>> = await this.api.get(`/customers?${params}`);
+    return response.data;
+  }
+
+  async getCustomer(id: string): Promise<Customer> {
+    const response: AxiosResponse<ApiResponse<{ customer: Customer }>> = await this.api.get(`/customers/${id}`);
+    return response.data.data!.customer;
+  }
+
+  async createCustomer(data: Partial<Customer>): Promise<Customer> {
+    const response: AxiosResponse<ApiResponse<{ customer: Customer }>> = await this.api.post('/customers', data);
+    return response.data.data!.customer;
+  }
+
+  async updateCustomer(id: string, data: Partial<Customer>): Promise<Customer> {
+    const response: AxiosResponse<ApiResponse<{ customer: Customer }>> = await this.api.put(`/customers/${id}`, data);
+    return response.data.data!.customer;
+  }
+
+  async deleteCustomer(id: string): Promise<void> {
+    await this.api.delete(`/customers/${id}`);
+  }
+
+  async searchCustomers(mobile: string): Promise<{ customers: Customer[] }> {
+    const response: AxiosResponse<ApiResponse<{ customers: Customer[] }>> = await this.api.get(`/customers/search/${mobile}`);
+    return response.data.data!;
+  }
+
+  async getCustomerStats(): Promise<{ totalCustomers: number; activeCustomers: number; topCustomers: Customer[] }> {
+    const response: AxiosResponse<ApiResponse<{ summary: { totalCustomers: number; activeCustomers: number; topCustomers: Customer[] } }>> = await this.api.get('/customers/stats/summary');
     return response.data.data!.summary;
   }
 

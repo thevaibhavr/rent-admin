@@ -618,7 +618,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 ].filter(Boolean).join('\n');
                 
                 return (
-                  <div
+                  <div 
                     title={tooltip}
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
@@ -709,7 +709,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 {isEditing ? 'Edit Booking' : 'Booking Details'}
               </h3>
               <div className="flex gap-2">
-                {!isEditing && selected.status !== 'canceled' && selected.status !== 'completed' && (
+                {!isEditing && selected.status !== 'canceled' && (
                   <>
                     <button
                       onClick={() => setIsEditing(true)}
@@ -762,92 +762,339 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 onSaved={handleEditSave}
               />
             ) : (
-              <div className="text-black">
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <h4 className="font-medium mb-2 text-black">Customer Details</h4>
-                    <div className="space-y-2">
-                      <div className="text-sm text-black">Name: {selected.customer.name}</div>
-                      <div className="text-sm text-black">Mobile: {selected.customer.mobile || 'N/A'}</div>
-                      <div className="text-sm text-black">Location: {selected.customer.location || 'N/A'}</div>
+              <div className="space-y-6">
+                {/* Customer Information Section */}
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                      Customer Information
+                    </h4>
                       {selected.customer.image && (
-                        <div className="relative h-24 w-24">
+                      <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-white shadow-md">
                           <Image
                             src={selected.customer.image}
                             alt="Customer"
                             fill
-                            className="object-cover rounded-full"
+                          className="object-cover"
                           />
                         </div>
                       )}
                     </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Name:</span>
+                        <span className="text-sm font-semibold text-gray-900">{selected.customer.name}</span>
                   </div>
-                  <div>
-                    <h4 className="font-medium mb-2 text-black">Booking Summary</h4>
-                    <div className="space-y-2 text-sm text-black">
-                      <div>Booking ID: {selected.bookingId || selected._id}</div>
-                      <div>Total Price: ₹{selected.totalPrice || 0}</div>
-                      <div>Total Advance: ₹{selected.totalAdvance || 0}</div>
-                      <div>Total Pending: ₹{selected.totalPending || 0}</div>
-                      <div>Total Security: ₹{selected.totalSecurity || 0}</div>
-                      {selected.referenceCustomer && (
-                        <div>Reference: {selected.referenceCustomer}</div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Mobile:</span>
+                        <span className="text-sm text-gray-900">{selected.customer.mobile || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Email:</span>
+                        <span className="text-sm text-gray-900">{selected.customer.email || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Location:</span>
+                        <span className="text-sm text-gray-900">{selected.customer.location || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Reference:</span>
+                        <span className="text-sm text-gray-900">{selected.referenceCustomer || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Created:</span>
+                        <span className="text-sm text-gray-900">
+                          {selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Emergency Contact */}
+                  {selected.customer.emergencyContact && (selected.customer.emergencyContact.name || selected.customer.emergencyContact.phone) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <h5 className="text-sm font-medium text-gray-700 mb-2">Emergency Contact</h5>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">{selected.customer.emergencyContact.name || 'N/A'}</span>
+                        <span className="text-sm text-gray-900">{selected.customer.emergencyContact.phone || 'N/A'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Body Measurements */}
+                  {selected.customer.measurements && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <h5 className="text-sm font-medium text-gray-700 mb-2">Body Measurements</h5>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                        {selected.customer.measurements.bust && (
+                          <div className="text-center">
+                            <div className="font-medium text-gray-900">{selected.customer.measurements.bust}cm</div>
+                            <div className="text-gray-600">Bust</div>
+                    </div>
+                        )}
+                        {selected.customer.measurements.waist && (
+                          <div className="text-center">
+                            <div className="font-medium text-gray-900">{selected.customer.measurements.waist}cm</div>
+                            <div className="text-gray-600">Waist</div>
+                          </div>
+                        )}
+                        {selected.customer.measurements.hips && (
+                          <div className="text-center">
+                            <div className="font-medium text-gray-900">{selected.customer.measurements.hips}cm</div>
+                            <div className="text-gray-600">Hips</div>
+                          </div>
+                        )}
+                        {selected.customer.measurements.shoulder && (
+                          <div className="text-center">
+                            <div className="font-medium text-gray-900">{selected.customer.measurements.shoulder}cm</div>
+                            <div className="text-gray-600">Shoulder</div>
+                          </div>
+                        )}
+                        {selected.customer.measurements.length && (
+                          <div className="text-center">
+                            <div className="font-medium text-gray-900">{selected.customer.measurements.length}cm</div>
+                            <div className="text-gray-600">Length</div>
+                          </div>
+                        )}
+                      </div>
+                      {selected.customer.measurements.size && (
+                        <div className="mt-2 text-center">
+                          <span className="text-sm font-medium text-purple-600">Size: {selected.customer.measurements.size}</span>
+                        </div>
                       )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Financial Summary */}
+                <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+                    </svg>
+                    Financial Summary
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                      <div className="text-sm font-medium text-gray-600 mb-1">Total Earnings</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        ₹{(selected.totalPaid || 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                      <div className="text-sm font-medium text-gray-600 mb-1">Total Expenses</div>
+                      <div className="text-2xl font-bold text-red-600">
+                        ₹{(selected.items?.reduce((total, item) =>
+                          total + (item.transportCost || 0) + (item.dryCleaningCost || 0) +
+                          (item.repairCost || 0) + (item.additionalCosts?.reduce((sum, cost) => sum + (cost.amount || 0), 0) || 0), 0) || 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                      <div className="text-sm font-medium text-gray-600 mb-1">Net Profit</div>
+                      <div className={`text-2xl font-bold ${
+                        ((selected.totalPaid || 0) - (selected.items?.reduce((total, item) =>
+                          total + (item.transportCost || 0) + (item.dryCleaningCost || 0) +
+                          (item.repairCost || 0) + (item.additionalCosts?.reduce((sum, cost) => sum + (cost.amount || 0), 0) || 0), 0) || 0)) >= 0
+                        ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        ₹{(((selected.totalPaid || 0) - (selected.items?.reduce((total, item) =>
+                          total + (item.transportCost || 0) + (item.dryCleaningCost || 0) +
+                          (item.repairCost || 0) + (item.additionalCosts?.reduce((sum, cost) => sum + (cost.amount || 0), 0) || 0), 0) || 0))).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Price:</span>
+                      <span className="font-semibold">₹{(selected.totalPrice || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Advance:</span>
+                      <span className="font-semibold">₹{(selected.totalAdvance || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pending:</span>
+                      <span className="font-semibold">₹{(selected.totalPending || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Security:</span>
+                      <span className="font-semibold">₹{(selected.totalSecurity || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Booking Items */}
-                <div className="mt-6">
-                  <h4 className="font-medium mb-4 text-black">Booking Items ({selected.items?.length || 0})</h4>
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                    Booking Items ({selected.items?.length || 0})
+                  </h4>
+
                   <div className="space-y-4">
                     {selected.items && selected.items.length > 0 ? (
                       selected.items.map((item, index) => {
-                        const dressName = typeof item.dressId === 'object' && item.dressId?.name 
-                          ? item.dressId.name 
+                        const dressName = typeof item.dressId === 'object' && item.dressId?.name
+                          ? item.dressId.name
                           : 'N/A';
                         const dressIdObj = typeof item.dressId === 'object' ? item.dressId : null;
-                        
+
                         return (
-                          <div key={index} className="border border-gray-300 p-4 rounded-lg">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <div className="text-sm font-medium text-black mb-2">Item {index + 1}: {dressName}</div>
-                                {item.dressImage && (
-                                  <div className="relative h-32 w-full">
-                                    <Image
-                                      src={item.dressImage}
-                                      alt="Dress"
-                                      fill
-                                      className="object-cover rounded"
-                                    />
-                                  </div>
-                                )}
-                                {dressIdObj && (
-                                  <div className="text-xs text-gray-600 mt-2">
-                                    <div>Brand: {dressIdObj.brand || 'N/A'}</div>
-                                    <div>Price: ₹{dressIdObj.price || 'N/A'}</div>
-                                  </div>
-                                )}
+                          <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                  {index + 1}
+                                </div>
+                                <div>
+                                  <h5 className="font-semibold text-gray-900">{dressName}</h5>
+                                  {dressIdObj?.brand && (
+                                    <p className="text-sm text-gray-600">{dressIdObj.brand}</p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="space-y-2 text-sm text-black">
-                                <div>Price After Bargain: ₹{item.priceAfterBargain || 0}</div>
-                                <div>Advance: ₹{item.advance || 0}</div>
-                                <div>Pending: ₹{item.pending || 0}</div>
-                                <div>Security: ₹{item.securityAmount || 0}</div>
-                                <div>Send Date: {item.sendDate ? new Date(item.sendDate).toLocaleDateString() : 'N/A'}</div>
-                                <div>Receive Date: {item.receiveDate ? new Date(item.receiveDate).toLocaleDateString() : 'N/A'}</div>
+
+                              {item.dressImage && (
+                                <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-300">
+                                  <Image
+                                    src={item.dressImage}
+                                    alt="Dress"
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {/* Pricing Information */}
+                              <div className="space-y-2">
+                                <h6 className="text-sm font-medium text-gray-700">Pricing</h6>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Original:</span>
+                                    <span className="font-medium">₹{(item.originalPrice || 0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">After Bargain:</span>
+                                    <span className="font-medium text-green-600">₹{(item.priceAfterBargain || 0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Discount:</span>
+                                    <span className="font-medium text-blue-600">₹{(item.discount || 0).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Payment Status */}
+                              <div className="space-y-2">
+                                <h6 className="text-sm font-medium text-gray-700">Payment</h6>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Advance:</span>
+                                    <span className="font-medium">₹{(item.advance || 0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Pending:</span>
+                                    <span className={`font-medium ${(item.pending || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                      ₹{(item.pending || 0).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Security:</span>
+                                    <span className="font-medium">₹{(item.securityAmount || 0).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Timeline & Usage */}
+                              <div className="space-y-2">
+                                <h6 className="text-sm font-medium text-gray-700">Timeline</h6>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Booked:</span>
+                                    <span className="font-medium">
+                                      {item.bookingDate ? new Date(item.bookingDate).toLocaleDateString() : 'N/A'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Sent:</span>
+                                    <span className="font-medium">
+                                      {item.sendDate ? new Date(item.sendDate).toLocaleDateString() : 'N/A'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Received:</span>
+                                    <span className="font-medium">
+                                      {item.receiveDate ? new Date(item.receiveDate).toLocaleDateString() : 'N/A'}
+                                    </span>
+                                  </div>
+                                </div>
+
                                 {item.useDress && (
-                                  <div className="text-blue-600 font-medium">Use: {item.useDress}</div>
-                                )}
-                                {item.useDressDate && (
-                                  <div className="text-purple-600 font-medium">
-                                    Use Date: {new Date(item.useDressDate).toLocaleDateString()}
-                                    {item.useDressTime && ` (${item.useDressTime})`}
+                                  <div className="mt-2 p-2 bg-purple-50 rounded text-xs">
+                                    <div className="font-medium text-purple-800">{item.useDress}</div>
+                                    {item.useDressDate && (
+                                      <div className="text-purple-600">
+                                        {new Date(item.useDressDate).toLocaleDateString()}
+                                        {item.useDressTime && ` • ${item.useDressTime}`}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
                             </div>
+
+                            {/* Operational Costs */}
+                            {(item.transportCost || item.dryCleaningCost || item.repairCost || item.additionalCosts?.length) && (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <h6 className="text-sm font-medium text-gray-700 mb-2">Operational Costs</h6>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                  {item.transportCost && item.transportCost > 0 && (
+                                    <div className="bg-blue-50 p-2 rounded">
+                                      <div className="text-blue-800 font-medium">Transport</div>
+                                      <div className="text-blue-600">₹{item.transportCost.toLocaleString()}</div>
+                                    </div>
+                                  )}
+                                  {item.dryCleaningCost && item.dryCleaningCost > 0 && (
+                                    <div className="bg-yellow-50 p-2 rounded">
+                                      <div className="text-yellow-800 font-medium">Dry Cleaning</div>
+                                      <div className="text-yellow-600">₹{item.dryCleaningCost.toLocaleString()}</div>
+                                    </div>
+                                  )}
+                                  {item.repairCost && item.repairCost > 0 && (
+                                    <div className="bg-red-50 p-2 rounded">
+                                      <div className="text-red-800 font-medium">Repair</div>
+                                      <div className="text-red-600">₹{item.repairCost.toLocaleString()}</div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {item.additionalCosts && item.additionalCosts.length > 0 && (
+                                  <div className="mt-2">
+                                    <div className="text-xs font-medium text-gray-700 mb-1">Additional Costs:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {item.additionalCosts.map((cost, costIndex) => (
+                                        <span key={costIndex} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                                          {cost.reason}: ₹{cost.amount?.toLocaleString() || 0}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })
@@ -883,6 +1130,99 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                     )}
                   </div>
                 </div>
+
+                {/* Booking Details */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                    Booking Details
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Booking ID:</span>
+                        <span className="text-sm font-mono text-gray-900">{selected.bookingId || selected._id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Payment Method:</span>
+                        <span className="text-sm text-gray-900">{selected.paymentMethod || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Rental Duration:</span>
+                        <span className="text-sm text-gray-900">{selected.rentalDuration ? `${selected.rentalDuration} days` : 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Return Deadline:</span>
+                        <span className="text-sm text-gray-900">
+                          {selected.returnDeadline ? new Date(selected.returnDeadline).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Created:</span>
+                        <span className="text-sm text-gray-900">
+                          {selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Updated:</span>
+                        <span className="text-sm text-gray-900">
+                          {selected.updatedAt ? new Date(selected.updatedAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                      {selected.deliveryAddress && (
+                        <div className="col-span-1 md:col-span-2">
+                          <span className="text-sm font-medium text-gray-600">Delivery Address:</span>
+                          <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded">{selected.deliveryAddress}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {selected.specialInstructions && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <span className="text-sm font-medium text-gray-600">Special Instructions:</span>
+                      <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded">{selected.specialInstructions}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes Section */}
+                {(selected.adminNotes || selected.customerNotes) && (
+                  <div className="bg-white rounded-lg p-6 border border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      Notes
+                    </h4>
+
+                    <div className="space-y-4">
+                      {selected.adminNotes && (
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Admin Notes</h5>
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">{selected.adminNotes}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selected.customerNotes && (
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Customer Notes</h5>
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-sm text-green-800">{selected.customerNotes}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Status */}
                 {selected.status === 'canceled' && (

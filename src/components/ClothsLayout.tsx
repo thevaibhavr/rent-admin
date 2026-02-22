@@ -26,6 +26,7 @@ interface ClothsLayoutProps {
 const clothsNavigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Users', href: '/users', icon: UsersIcon },
+  { name: 'Customers', href: '/customers', icon: UserCircleIcon },
   { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Categories', href: '/categories', icon: TagIcon },
   { name: 'Merchants', href: '/merchants', icon: BuildingStorefrontIcon },
