@@ -7,7 +7,7 @@ export interface User {
   address?: {
     street?: string;
     city?: string;
-    state?: string;
+    state?: string;     
     zipCode?: string;
     country?: string;
   };
