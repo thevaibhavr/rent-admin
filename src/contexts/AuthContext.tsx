@@ -70,8 +70,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🔐 Starting login process for:', email);
+
       // Special login for moment@gmail.com
       if (email === 'moment@gmail.com' && password === '1234567') {
+        console.log('🎭 Using special admin login');
         const mockUser = {
           _id: 'special-admin',
           name: 'Beauty Admin',
@@ -86,26 +89,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           updatedAt: new Date().toISOString()
         };
         const mockToken = 'special-admin-token-' + Date.now();
-        
+
         localStorage.setItem('admin_token', mockToken);
         localStorage.setItem('admin_user', JSON.stringify(mockUser));
         setUser(mockUser);
+        console.log('✅ Special admin login successful');
         return;
       }
 
+      console.log('🌐 Making API call to login endpoint');
       const response = await apiService.login({ email, password });
-      
+      console.log('📥 API response received:', response);
+
       // Check if user is admin
       if (response.user.role !== 'admin') {
+        console.error('🚫 User is not admin:', response.user.role);
         throw new Error('Access denied. Admin privileges required.');
       }
 
+      console.log('💾 Storing user data and token');
       localStorage.setItem('admin_token', response.token);
       localStorage.setItem('admin_user', JSON.stringify(response.user));
       setUser(response.user);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      console.log('✅ Login successful');
+    } catch (error: any) {
+      console.error('❌ Login failed:', error);
+
+      // Provide more detailed error messages
+      if (error.response) {
+        // Server responded with error status
+        console.error('Server error:', error.response.status, error.response.data);
+        const message = error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
+        throw new Error(message);
+      } else if (error.request) {
+        // Network error
+        console.error('Network error - no response received:', error.request);
+        throw new Error('Network error: Unable to connect to server. Please check your internet connection and try again.');
+      } else {
+        // Other error
+        console.error('Request setup error:', error.message);
+        throw new Error(error.message || 'An unexpected error occurred during login.');
+      }
     }
   };
 

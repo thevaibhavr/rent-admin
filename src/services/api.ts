@@ -154,28 +154,47 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      timeout: 15000, // 15 second timeout
     });
 
-    // Request interceptor to add auth token  
+    // Request interceptor to add auth token
     this.api.interceptors.request.use(
       (config) => {
+        console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
         const token = localStorage.getItem('admin_token');
         if (token) {
           // For special admin tokens, still send them but backend will handle them
           config.headers.Authorization = `Bearer ${token}`;
+          console.log('🔑 Using auth token');
         }
         return config;
       },
       (error) => {
+        console.error('❌ Request interceptor error:', error);
         return Promise.reject(error);
       }
     );
 
     // Response interceptor for error handling
     this.api.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log('✅ API Response:', response.status, response.config.method?.toUpperCase(), response.config.url);
+        return response;
+      },
       (error) => {
+        console.error('❌ API Error:', error.config?.method?.toUpperCase(), error.config?.url);
+
+        if (error.response) {
+          console.error('Response status:', error.response.status);
+          console.error('Response data:', error.response.data);
+        } else if (error.request) {
+          console.error('No response received - network error');
+        } else {
+          console.error('Request setup error:', error.message);
+        }
+
         if (error.response?.status === 401) {
+          console.log('🔄 401 error - clearing auth data');
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_user');
           window.location.href = '/login';
