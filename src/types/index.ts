@@ -132,7 +132,7 @@ export interface ApiResponse<T> {
 export interface PaginatedResponse<T> {
   success: boolean;
   data: {
-    [key: string]: T[] | number;
+    [key: string]: T[] | number | { totalPages: number; currentPage: number; total: number };
     totalPages: number;
     currentPage: number;
     total: number;
@@ -171,6 +171,10 @@ export interface DashboardStats {
   completedBookings?: number;
   canceledBookings?: number;
   pendingBookings?: number;
+  // Customer statistics
+  customerTotalCustomers?: number;
+  customerActiveCustomers?: number;
+  topCustomers?: Customer[]; // Array of top customer objects
 }
 
 export interface LoginCredentials {
@@ -318,6 +322,19 @@ export interface Customer {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CustomersResponse {
+  success: boolean;
+  data: {
+    customers: Customer[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
 }
 
 export interface Booking {

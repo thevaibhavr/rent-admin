@@ -112,23 +112,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('admin_user', JSON.stringify(response.user));
       setUser(response.user);
       console.log('✅ Login successful');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Login failed:', error);
 
-      // Provide more detailed error messages
-      if (error.response) {
-        // Server responded with error status
-        console.error('Server error:', error.response.status, error.response.data);
-        const message = error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
-        throw new Error(message);
-      } else if (error.request) {
-        // Network error
-        console.error('Network error - no response received:', error.request);
-        throw new Error('Network error: Unable to connect to server. Please check your internet connection and try again.');
+      // Type guard to check if it's an axios error
+      const isAxiosError = (err: unknown): err is { response?: { status: number; data: { message?: string; error?: string } }; request?: unknown; message?: string } => {
+        return typeof err === 'object' && err !== null;
+      };
+
+      if (isAxiosError(error)) {
+        // Provide more detailed error messages for axios errors
+        if (error.response) {
+          // Server responded with error status
+          console.error('Server error:', error.response.status, error.response.data);
+          const message = error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
+          throw new Error(message);
+        } else if (error.request) {
+          // Network error - no response received
+          console.error('Network error - no response received:', error.request);
+          throw new Error('Network error: Unable to connect to server. Please check your internet connection and try again.');
+        } else {
+          // Other axios error
+          console.error('Request setup error:', error.message);
+          throw new Error(error.message || 'An unexpected error occurred during login.');
+        }
       } else {
-        // Other error
-        console.error('Request setup error:', error.message);
-        throw new Error(error.message || 'An unexpected error occurred during login.');
+        // Generic error
+        const message = error instanceof Error ? error.message : 'An unexpected error occurred during login.';
+        console.error('Generic error:', message);
+        throw new Error(message);
       }
     }
   };

@@ -15,7 +15,8 @@ import {
   Merchant,
   UpdateOrderStatusData,
   Booking,
-  Customer
+  Customer,
+  CustomersResponse
 } from '@/types';
 
 // Beauty-related interfaces
@@ -440,7 +441,7 @@ class ApiService {
   }
 
   // Customers endpoints
-  async getCustomers(page = 1, limit = 10, search?: string): Promise<PaginatedResponse<Customer>> {
+  async getCustomers(page = 1, limit = 10, search?: string): Promise<CustomersResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString()
@@ -448,7 +449,7 @@ class ApiService {
     if (search) {
       params.append('search', search);
     }
-    const response: AxiosResponse<PaginatedResponse<Customer>> = await this.api.get(`/customers?${params}`);
+    const response: AxiosResponse<CustomersResponse> = await this.api.get(`/customers?${params}`);
     return response.data;
   }
 

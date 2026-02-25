@@ -578,7 +578,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
   const handleCompletePayment = async () => {
     try {
       // Create payload to mark booking as completed
-      const payload = {
+      const payload: { status: 'active' | 'completed' | 'canceled' } = {
         status: 'completed'
       };
 
