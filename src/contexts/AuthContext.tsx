@@ -37,29 +37,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const savedUser = localStorage.getItem('admin_user');
 
         if (token && savedUser) {
-          // Check if it's a special admin token
-          if (token.startsWith('special-admin-token-')) {
-            const user = JSON.parse(savedUser);
-            setUser(user);
-          } else {
-            // Verify token is still valid
-            try {
-              const currentUser = await apiService.getCurrentUser();
-              setUser(currentUser);
-            } catch (error) {
-              // Token might be invalid, but keep special admin
-              console.error('Auth initialization error:', error);
-            }
+          // Verify token is still valid
+          try {
+            const currentUser = await apiService.getCurrentUser();
+            setUser(currentUser);
+          } catch (error) {
+            console.error('Auth initialization error:', error);
           }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        // Don't remove special admin tokens
-        const token = localStorage.getItem('admin_token');
-        if (!token || !token.startsWith('special-admin-token-')) {
-          localStorage.removeItem('admin_token');
-          localStorage.removeItem('admin_user');
-        }
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
       } finally {
         setLoading(false);
       }
@@ -71,31 +60,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       console.log('🔐 Starting login process for:', email);
-
-      // Special login for moment@gmail.com
-      if (email === 'moment@gmail.com' && password === '1234567') {
-        console.log('🎭 Using special admin login');
-        const mockUser = {
-          _id: 'special-admin',
-          name: 'Beauty Admin',
-          email: 'moment@gmail.com',
-          role: 'admin' as const,
-          phone: '',
-          address: undefined,
-          avatar: undefined,
-          isActive: true,
-          emailVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        const mockToken = 'special-admin-token-' + Date.now();
-
-        localStorage.setItem('admin_token', mockToken);
-        localStorage.setItem('admin_user', JSON.stringify(mockUser));
-        setUser(mockUser);
-        console.log('✅ Special admin login successful');
-        return;
-      }
 
       console.log('🌐 Making API call to login endpoint');
       const response = await apiService.login({ email, password });

@@ -147,8 +147,10 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://rent-moment-hfdbfea8abcmcwh4.centralindia-01.azurewebsites.net/api';
-    
+    // Same-origin App Router API (src/app/api). Override with NEXT_PUBLIC_API_URL
+    // only to point at an external backend (e.g. during migration testing).
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
 
     this.api = axios.create({
       baseURL: this.baseURL,
