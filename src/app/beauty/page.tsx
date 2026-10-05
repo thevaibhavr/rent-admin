@@ -366,7 +366,7 @@ function BeautyPage() {
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
-            Add Product
+            Add  Product   
           </button>
         </div>
 
