@@ -4,12 +4,14 @@ import {
   PaginatedResponse,
   User,
   Category,
+  Occasion,
   Product,
   Order,
   DashboardStats,
   LoginCredentials,
   AuthResponse,
   CreateCategoryData,
+  CreateOccasionData,
   CreateProductData,
   CreateMerchantData,
   Merchant,
@@ -197,10 +199,14 @@ class ApiService {
         }
 
         if (error.response?.status === 401) {
-          console.log('🔄 401 error - clearing auth data');
-          localStorage.removeItem('admin_token');
-          localStorage.removeItem('admin_user');
-          window.location.href = '/login';
+          const requestUrl = String(error.config?.url || '');
+          const isLoginRequest = requestUrl.includes('/auth/login');
+          if (!isLoginRequest && typeof window !== 'undefined') {
+            console.log('🔄 401 error - clearing auth data');
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }
@@ -241,6 +247,31 @@ class ApiService {
 
   async deleteCategory(id: string): Promise<void> {
     await this.api.delete(`/categories/${id}`);
+  }
+
+  // Occasion endpoints
+  async getOccasions(page = 1, limit = 10): Promise<PaginatedResponse<Occasion>> {
+    const response: AxiosResponse<PaginatedResponse<Occasion>> = await this.api.get(`/occasions?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
+  async getOccasion(id: string): Promise<Occasion> {
+    const response: AxiosResponse<ApiResponse<{ occasion: Occasion }>> = await this.api.get(`/occasions/${id}`);
+    return response.data.data!.occasion;
+  }
+
+  async createOccasion(data: CreateOccasionData): Promise<Occasion> {
+    const response: AxiosResponse<ApiResponse<{ occasion: Occasion }>> = await this.api.post('/occasions', data);
+    return response.data.data!.occasion;
+  }
+
+  async updateOccasion(id: string, data: Partial<CreateOccasionData>): Promise<Occasion> {
+    const response: AxiosResponse<ApiResponse<{ occasion: Occasion }>> = await this.api.put(`/occasions/${id}`, data);
+    return response.data.data!.occasion;
+  }
+
+  async deleteOccasion(id: string): Promise<void> {
+    await this.api.delete(`/occasions/${id}`);
   }
 
   // Merchants endpoints

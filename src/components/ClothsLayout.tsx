@@ -11,6 +11,7 @@ import {
   ShoppingCartIcon,
   BuildingStorefrontIcon,
   StarIcon,
+  SparklesIcon,
   CalendarIcon,
   Bars3Icon,
   XMarkIcon,
@@ -29,6 +30,7 @@ const clothsNavigation = [
   { name: 'Customers', href: '/customers', icon: UserCircleIcon },
   { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Categories', href: '/categories', icon: TagIcon },
+  { name: 'Occasions', href: '/occasions', icon: SparklesIcon },
   { name: 'Merchants', href: '/merchants', icon: BuildingStorefrontIcon },
   { name: 'Orders', href: '/orders', icon: ShoppingCartIcon },
   {

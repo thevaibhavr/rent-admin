@@ -69,6 +69,12 @@ export async function POST(request: NextRequest) {
       'Login successful'
     );
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown login error';
+
+    if (message.toLowerCase().includes('mongodb') || message.toLowerCase().includes('connection')) {
+      return fail('Database unavailable. Please check MONGODB_URI and make sure MongoDB is running.', 503);
+    }
+
     return serverError(error, 'Server error during login');
   }
 }

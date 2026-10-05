@@ -30,6 +30,19 @@ export interface Category {
   updatedAt: string;
 }
 
+export interface Occasion {
+  _id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  slug: string;
+  status: 'active' | 'inactive';
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Merchant {
   _id: string;
   name: string;
@@ -51,6 +64,8 @@ export interface Product {
   description: string;
   category: Category;
   categories: Category[];
+  occasions?: Occasion[];
+  occasion?: Occasion;
   Owner?: Merchant;
   images: string[];
   price?: number;
@@ -194,10 +209,20 @@ export interface CreateCategoryData {
   sortOrder?: number;
 }
 
+export interface CreateOccasionData {
+  name: string;
+  description?: string;
+  image?: string;
+  status?: 'active' | 'inactive';
+  displayOrder?: number;
+}
+
 export interface CreateProductData {
   name: string;
   description: string;
   categories: string[];
+  occasions?: string[];
+  occasion?: string;
   Owner?: string;
   images: string[];
   price?: number;
