@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 import Image from 'next/image';
-import { Product, Category, ProductSize, Merchant} from '@/types';
+import { Product, Category, ProductSize, Merchant, Occasion } from '@/types';
 import { apiService } from '@/services/api';
 import { PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
@@ -13,9 +14,18 @@ import {
   PlusIcon
 } from '@heroicons/react/24/outline';
 
+const getProductErrorMessage = (error: unknown, fallback: string): string => {
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    const message = error.response?.data?.message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return error instanceof Error ? error.message : fallback;
+};
+
 function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,11 +35,13 @@ function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     categories: [] as string[],
+    occasions: [] as string[],
     Owner: '',
     images: [''],
     price: 0,
@@ -84,11 +96,22 @@ function ProductsPage() {
     }
   }, []);
 
+  const fetchOccasions = useCallback(async () => {
+    try {
+      const response: PaginatedResponse<Occasion> = await apiService.getOccasions(1, 100);
+      setOccasions(Array.isArray(response.data.occasions) ? response.data.occasions : []);
+    } catch (error) {
+      console.error('Error fetching occasions:', error);
+      toast.error('Failed to load occasions');
+    }
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     fetchMerchants();
-  }, [fetchProducts, fetchCategories, fetchMerchants]);
+    fetchOccasions();
+  }, [fetchProducts, fetchCategories, fetchMerchants, fetchOccasions]);
 
   const handleAddProduct = async () => {
     try {
@@ -105,14 +128,14 @@ function ProductsPage() {
       fetchProducts();
     } catch (error: unknown) {
       console.error('Error creating product:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create product';
-      toast.error(errorMessage);
+      toast.error(getProductErrorMessage(error, 'Failed to create product'));
     }
   };
 
   const handleEditProduct = async () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || isUpdatingProduct) return;
     
+    setIsUpdatingProduct(true);
     try {
       const productData = {
         ...formData,
@@ -128,8 +151,9 @@ function ProductsPage() {
       fetchProducts();
     } catch (error: unknown) {
       console.error('Error updating product:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
-      toast.error(errorMessage);
+      toast.error(getProductErrorMessage(error, 'Failed to update product'));
+    } finally {
+      setIsUpdatingProduct(false);
     }
   };
 
@@ -142,8 +166,7 @@ function ProductsPage() {
       fetchProducts();
     } catch (error: unknown) {
       console.error('Error deleting product:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete product';
-      toast.error(errorMessage);
+      toast.error(getProductErrorMessage(error, 'Failed to delete product'));
     }
   };
 
@@ -167,8 +190,10 @@ function ProductsPage() {
       name: product.name,
       description: product.description,
       categories: categoryIds,
+      occasions: product.occasions?.map((occasion) => occasion._id) ??
+        (product.occasion ? [product.occasion._id] : []),
       Owner: product.Owner?._id || '',
-      images: product.images,
+      images: product.images.filter((image) => image.trim().length > 0),
       price: product.price || 0,
       originalPrice: product.originalPrice,
       deposit: product.deposit || 0,
@@ -191,6 +216,7 @@ function ProductsPage() {
       name: '',
       description: '',
       categories: [],
+      occasions: [],
       Owner: '',
       images: [''],
       price: 0,
@@ -588,6 +614,32 @@ function ProductsPage() {
                   )}
                 </div>
 
+                <fieldset>
+                  <legend className="block text-sm font-medium text-gray-700">Occasions (optional)</legend>
+                  <div className="mt-1 grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-md border border-gray-300 p-3 sm:grid-cols-2">
+                    {occasions.length > 0 ? occasions.map((occasion) => (
+                      <label key={occasion._id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.occasions.includes(occasion._id)}
+                          onChange={(event) => setFormData({
+                            ...formData,
+                            occasions: event.target.checked
+                              ? [...formData.occasions, occasion._id]
+                              : formData.occasions.filter((id) => id !== occasion._id)
+                          })}
+                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          {occasion.name}{occasion.status === 'inactive' ? ' (Inactive)' : ''}
+                        </span>
+                      </label>
+                    )) : (
+                      <p className="text-sm text-gray-500">No occasions available. Add occasions first.</p>
+                    )}
+                  </div>
+                </fieldset>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Description</label>
                   <textarea
@@ -843,11 +895,11 @@ function ProductsPage() {
 
       {/* Edit Product Modal */}
       {showEditModal && selectedProduct && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Product</h3>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+          <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="flex min-h-0 flex-1 flex-col">
+              <h3 className="border-b border-gray-200 px-6 py-4 text-lg font-semibold text-gray-900">Edit Product</h3>
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -907,6 +959,32 @@ function ProductsPage() {
                     <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
                   )}
                 </div>
+
+                <fieldset>
+                  <legend className="block text-sm font-medium text-gray-700">Occasions (optional)</legend>
+                  <div className="mt-1 grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-md border border-gray-300 p-3 sm:grid-cols-2">
+                    {occasions.length > 0 ? occasions.map((occasion) => (
+                      <label key={occasion._id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.occasions.includes(occasion._id)}
+                          onChange={(event) => setFormData({
+                            ...formData,
+                            occasions: event.target.checked
+                              ? [...formData.occasions, occasion._id]
+                              : formData.occasions.filter((id) => id !== occasion._id)
+                          })}
+                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          {occasion.name}{occasion.status === 'inactive' ? ' (Inactive)' : ''}
+                        </span>
+                      </label>
+                    )) : (
+                      <p className="text-sm text-gray-500">No occasions available. Add occasions first.</p>
+                    )}
+                  </div>
+                </fieldset>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Description</label>
@@ -1142,18 +1220,23 @@ function ProductsPage() {
                   </label>
                 </div>
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 border-t border-gray-200 bg-white px-6 py-4">
                 <button
                   onClick={() => setShowEditModal(false)}
+                  disabled={isUpdatingProduct}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleEditProduct}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                  disabled={isUpdatingProduct}
+                  className="inline-flex min-w-36 items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Update Product
+                  {isUpdatingProduct && (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  )}
+                  {isUpdatingProduct ? 'Updating...' : 'Update Product'}
                 </button>
               </div>
             </div>

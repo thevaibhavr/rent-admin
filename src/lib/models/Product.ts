@@ -10,6 +10,7 @@ export interface IProduct extends Document {
   name: string;
   description: string;
   categories: Types.ObjectId[];
+  occasions: Types.ObjectId[];
   Owner?: Types.ObjectId;
   category?: Types.ObjectId;
   images: string[];
@@ -55,6 +56,10 @@ const productSchema = new Schema<IProduct>({
     type: Schema.Types.ObjectId,
     ref: 'Category',
     required: [true, 'Please provide at least one category']
+  }],
+  occasions: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Occasion'
   }],
   Owner: {
     type: Schema.Types.ObjectId,
@@ -217,6 +222,11 @@ productSchema.pre('save', async function() {
 
 // Index for search functionality
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
+
+const cachedProductModel = mongoose.models.Product as Model<IProduct> | undefined;
+if (cachedProductModel && !cachedProductModel.schema.path('occasions')) {
+  mongoose.deleteModel('Product');
+}
 
 const Product: Model<IProduct> = mongoose.models.Product || mongoose.model<IProduct>('Product', productSchema);
 

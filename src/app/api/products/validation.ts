@@ -92,6 +92,18 @@ export function validateProductBody(
     }
   }
 
+  if (body.occasions !== undefined) {
+    if (!Array.isArray(body.occasions)) {
+      push(body.occasions, 'Occasions must be an array', 'occasions');
+    } else {
+      body.occasions.forEach((occasionId, index) => {
+        if (!isMongoIdValue(occasionId)) {
+          push(occasionId, 'Valid occasion ID is required', `occasions[${index}]`);
+        }
+      });
+    }
+  }
+
   if (check('images') && (!Array.isArray(body.images) || body.images.length < 1)) {
     push(body.images, 'At least one image is required', 'images');
   }

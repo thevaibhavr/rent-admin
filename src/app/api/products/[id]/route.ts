@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Category from '@/lib/models/Category';
+import Occasion from '@/lib/models/Occasion';
 import '@/lib/models/Merchant';
 import { optionalAuth, requireAdmin } from '@/lib/auth';
 import { ok, fail, serverError } from '@/lib/apiResponse';
@@ -23,6 +24,7 @@ export async function GET(
     const product = await Product.findById(id)
       .populate('category', 'name slug')
       .populate('categories', 'name slug')
+      .populate('occasions', 'name slug status')
       .populate('Owner', 'name mobilenumber address');
 
     if (!product) {
@@ -91,6 +93,15 @@ export async function PUT(
       }
     }
 
+    if (body.occasions !== undefined) {
+      for (const occasionId of body.occasions as unknown[]) {
+        const occasionExists = await Occasion.findById(occasionId);
+        if (!occasionExists) {
+          return fail(`Occasion with ID ${occasionId} not found`, 400);
+        }
+      }
+    }
+
     // Handle image uploads if provided
     if (body.images) {
       const uploadedImages: string[] = [];
@@ -107,11 +118,12 @@ export async function PUT(
 
     // Update product
     const updatedProduct = await Product.findByIdAndUpdate(id, body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     })
       .populate('category', 'name slug')
       .populate('categories', 'name slug')
+      .populate('occasions', 'name slug status')
       .populate('Owner', 'name mobilenumber address');
 
     return ok({ product: updatedProduct }, 200, 'Product updated successfully');

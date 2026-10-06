@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Category from '@/lib/models/Category';
+import Occasion from '@/lib/models/Occasion';
 import '@/lib/models/Merchant';
 import { optionalAuth } from '@/lib/auth';
 import { ok, fail, serverError } from '@/lib/apiResponse';
@@ -90,6 +91,7 @@ export async function GET(request: NextRequest) {
     const products = await Product.find(filter)
       .populate('category', 'name slug')
       .populate('categories', 'name slug')
+      .populate('occasions', 'name slug status')
       .populate('Owner', 'name mobilenumber address')
       .sort(sortOptions)
       .limit(limit)
@@ -138,6 +140,7 @@ export async function POST(request: NextRequest) {
       name,
       description,
       categories,
+      occasions,
       images,
       price,
       originalPrice,
@@ -172,6 +175,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const selectedOccasions = (occasions as unknown[] | undefined) ?? [];
+    for (const occasionId of selectedOccasions) {
+      const occasionExists = await Occasion.findById(occasionId);
+      if (!occasionExists) {
+        return fail(`Occasion with ID ${occasionId} not found`, 400);
+      }
+    }
+
     // Upload images to Cloudinary
     const uploadedImages: string[] = [];
     for (const image of images as string[]) {
@@ -187,6 +198,7 @@ export async function POST(request: NextRequest) {
       name,
       description,
       categories: filteredCategories,
+      occasions: selectedOccasions,
       images: uploadedImages,
       price,
       originalPrice,
@@ -208,6 +220,7 @@ export async function POST(request: NextRequest) {
     const populatedProduct = await Product.findById(product._id)
       .populate('category', 'name slug')
       .populate('categories', 'name slug')
+      .populate('occasions', 'name slug status')
       .populate('Owner', 'name mobilenumber address');
 
     return ok({ product: populatedProduct }, 201, 'Product created successfully');
