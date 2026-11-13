@@ -17,6 +17,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   UserCircleIcon,
+  UserPlusIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,6 +30,7 @@ const clothsNavigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Users', href: '/users', icon: UsersIcon },
   { name: 'Customers', href: '/customers', icon: UserCircleIcon },
+  { name: 'Visitor Details', href: '/visitor-profiles', icon: UserPlusIcon },
   { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'User Analytics', href: '/analytics', icon: ChartBarIcon },
   { name: 'Categories', href: '/categories', icon: TagIcon },

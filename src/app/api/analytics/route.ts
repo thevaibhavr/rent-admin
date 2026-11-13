@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import AnalyticsEvent from '@/lib/models/AnalyticsEvent';
 import Category from '@/lib/models/Category';
 import Product from '@/lib/models/Product';
+import VisitorProfile from '@/lib/models/VisitorProfile';
 import { requireAdmin } from '@/lib/auth';
 import { ok, fail, serverError } from '@/lib/apiResponse';
 
@@ -129,6 +130,8 @@ export async function GET(request: NextRequest) {
       categoryClickStats,
       activeCategories,
       searchKeywords,
+      visitorProfilesCount,
+      visitorProfiles,
     ] = await Promise.all([
       AnalyticsEvent.countDocuments(productViews),
       AnalyticsEvent.countDocuments(productClicks),
@@ -221,6 +224,12 @@ export async function GET(request: NextRequest) {
         { $sort: { searches: -1, uniqueVisitors: -1 } },
         { $project: { _id: 0, keyword: '$_id', searches: 1, uniqueVisitors: 1, noResultSearches: 1 } },
       ]),
+      VisitorProfile.countDocuments(dateFilter),
+      VisitorProfile.find(dateFilter)
+        .select('visitorId name mobile city createdAt')
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean(),
     ]);
 
     const mostViewedProducts = productActivityResult[0]?.mostViewed ?? [];
@@ -248,7 +257,9 @@ export async function GET(request: NextRequest) {
         repeatVisitors: repeatVisitors[0]?.count ?? 0,
         totalCategoryClicks: categoryClickStats.reduce((total, category) => total + category.totalClicks, 0),
         totalSearches: searchKeywords.reduce((total, keyword) => total + keyword.searches, 0),
+        visitorProfilesCount,
       },
+      visitorProfiles,
       products: mostViewedProducts.map(withProductDetails),
       mostClickedProducts: mostClickedProducts.map(withProductDetails),
       categories: activeCategories

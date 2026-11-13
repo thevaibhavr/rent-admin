@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon, CursorArrowRaysIcon, EyeIcon, MagnifyingGlassIcon, TagIcon, UsersIcon } from '@heroicons/react/24/outline';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiService } from '@/services/api';
@@ -58,6 +59,7 @@ function AnalyticsPage() {
     { label: 'Repeat Visitors', value: summary?.repeatVisitors ?? 0, icon: UsersIcon },
     { label: 'Category Clicks', value: summary?.totalCategoryClicks ?? 0, icon: TagIcon },
     { label: 'Searches', value: summary?.totalSearches ?? 0, icon: MagnifyingGlassIcon },
+    { label: 'Visitor Details Collected', value: summary?.visitorProfilesCount ?? 0, icon: UsersIcon },
   ];
 
   return (
@@ -103,7 +105,7 @@ function AnalyticsPage() {
 
       {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-7">
         {cards.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
@@ -147,9 +149,49 @@ function AnalyticsPage() {
 
           <KeywordTable title="Most Searched Keywords" rows={data?.searchKeywords ?? []} countLabel="Searches" countKey="searches" />
           <KeywordTable title="Searches With No Results" rows={data?.noResultSearches ?? []} countLabel="No results" countKey="noResultSearches" />
+          <VisitorProfileTable rows={data?.visitorProfiles ?? []} />
         </div>
       )}
     </div>
+  );
+}
+
+function VisitorProfileTable({ rows }: { rows: AnalyticsDashboardData['visitorProfiles'] }) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm xl:col-span-2">
+      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <h2 className="font-semibold text-gray-900">Recently Collected Visitor Details</h2>
+        <Link href="/visitor-profiles" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+          View all
+        </Link>
+      </div>
+      <p className="px-5 py-2 text-xs text-gray-500">Profiles collected within the selected date range.</p>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+            <tr>
+              <th className="px-5 py-3">Name</th>
+              <th className="px-5 py-3">Mobile</th>
+              <th className="px-5 py-3">Village / City</th>
+              <th className="px-5 py-3">Submitted</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {rows.map((profile) => (
+              <tr key={profile.visitorId}>
+                <td className="px-5 py-3 font-medium text-gray-900">{profile.name}</td>
+                <td className="px-5 py-3 text-gray-600">
+                  <a href={`tel:${profile.mobile}`} className="hover:text-indigo-600">{profile.mobile}</a>
+                </td>
+                <td className="px-5 py-3 text-gray-600">{profile.city}</td>
+                <td className="px-5 py-3 text-gray-600">{new Date(profile.createdAt).toLocaleDateString('en-IN')}</td>
+              </tr>
+            ))}
+            {!rows.length && <EmptyRow colSpan={4} />}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

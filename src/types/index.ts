@@ -200,7 +200,9 @@ export interface AnalyticsDashboardData {
     repeatVisitors: number;
     totalCategoryClicks: number;
     totalSearches: number;
+    visitorProfilesCount: number;
   };
+  visitorProfiles: VisitorProfileRecord[];
   products: ProductActivityStat[];
   mostClickedProducts: ProductActivityStat[];
   categories: Array<{
@@ -221,6 +223,21 @@ export interface AnalyticsDashboardData {
     uniqueVisitors: number;
     noResultSearches: number;
   }>;
+}
+
+export interface VisitorProfileRecord {
+  visitorId: string;
+  name: string;
+  mobile: string;
+  city: string;
+  createdAt: string;
+}
+
+export interface VisitorProfilesResponse {
+  profiles: VisitorProfileRecord[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 export interface ProductActivityStat {
