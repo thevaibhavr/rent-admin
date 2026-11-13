@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  distDir: '.next',
+  distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   typescript: {
     ignoreBuildErrors: false,
   },

@@ -43,7 +43,9 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
     }
     return { user };
   } catch (error) {
-    console.error('Token verification error:', error);
+    if (!(error instanceof Error && error.name === 'TokenExpiredError')) {
+      console.error('Token verification error:', error);
+    }
     return { error: { message: 'Not authorized, token failed', status: 401 } };
   }
 }

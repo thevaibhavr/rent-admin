@@ -18,7 +18,8 @@ import {
   UpdateOrderStatusData,
   Booking,
   Customer,
-  CustomersResponse
+  CustomersResponse,
+  AnalyticsDashboardData
 } from '@/types';
 
 // Beauty-related interfaces
@@ -167,7 +168,8 @@ class ApiService {
       (config) => {
         console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
         const token = localStorage.getItem('admin_token');
-        if (token) {
+        const isLoginRequest = String(config.url || '').includes('/auth/login');
+        if (token && !isLoginRequest) {
           // For special admin tokens, still send them but backend will handle them
           config.headers.Authorization = `Bearer ${token}`;
           console.log('🔑 Using auth token');
@@ -205,7 +207,9 @@ class ApiService {
             console.log('🔄 401 error - clearing auth data');
             localStorage.removeItem('admin_token');
             localStorage.removeItem('admin_user');
-            window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
           }
         }
         return Promise.reject(error);
@@ -745,6 +749,16 @@ class ApiService {
   async healthCheck(): Promise<{ status: string; message: string }> {
     const response: AxiosResponse<{ status: string; message: string }> = await this.api.get('/health');
     return response.data;
+  }
+
+  async getActivityAnalytics(params: {
+    period: 'today' | '7days' | '30days' | 'month' | 'custom';
+    startDate?: string;
+    endDate?: string;
+    timeZone?: string;
+  }): Promise<AnalyticsDashboardData> {
+    const response: AxiosResponse<ApiResponse<AnalyticsDashboardData>> = await this.api.get('/analytics', { params });
+    return response.data.data!;
   }
 }
 

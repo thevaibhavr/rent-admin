@@ -192,6 +192,49 @@ export interface DashboardStats {
   topCustomers?: Customer[]; // Array of top customer objects
 }
 
+export interface AnalyticsDashboardData {
+  summary: {
+    totalProductViews: number;
+    totalProductClicks: number;
+    uniqueVisitors: number;
+    repeatVisitors: number;
+    totalCategoryClicks: number;
+    totalSearches: number;
+  };
+  products: ProductActivityStat[];
+  mostClickedProducts: ProductActivityStat[];
+  categories: Array<{
+    categorySlug: string;
+    name: string;
+    totalClicks: number;
+    uniqueVisitors: number;
+  }>;
+  searchKeywords: Array<{
+    keyword: string;
+    searches: number;
+    uniqueVisitors: number;
+    noResultSearches: number;
+  }>;
+  noResultSearches: Array<{
+    keyword: string;
+    searches: number;
+    uniqueVisitors: number;
+    noResultSearches: number;
+  }>;
+}
+
+export interface ProductActivityStat {
+    productId: string;
+    name: string;
+    totalViews: number;
+    totalClicks: number;
+    uniqueVisitors: number;
+    repeatVisitors: number;
+    uniqueClickVisitors: number;
+    imageUrl: string | null;
+    detailUrl: string;
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;

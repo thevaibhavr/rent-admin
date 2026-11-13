@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import axios from 'axios';
 import { User } from '@/types';
 import { apiService } from '@/services/api';
 
@@ -42,8 +43,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const currentUser = await apiService.getCurrentUser();
             setUser(currentUser);
           } catch (error) {
-            console.error('Auth initialization error:', error);
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+              localStorage.removeItem('admin_token');
+              localStorage.removeItem('admin_user');
+            } else {
+              console.error('Auth initialization error:', error);
+            }
           }
+        } else if (token || savedUser) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
