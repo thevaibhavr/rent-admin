@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowPathIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiService } from '@/services/api';
 import type { VisitorProfileRecord } from '@/types';
@@ -111,9 +111,19 @@ function VisitorProfilesPage() {
     }
   };
 
+  const getInitials = (name: string) => {
+    const initials = name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
+    return initials || '?';
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Visitor Details</h1>
           <p className="mt-1 text-sm text-gray-500">Contact details submitted through the storefront prompt.</p>
@@ -121,17 +131,17 @@ function VisitorProfilesPage() {
         <button
           type="button"
           onClick={() => setRefreshKey((currentKey) => currentKey + 1)}
-          className="inline-flex items-center gap-2 self-start rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 sm:self-auto"
+          className="inline-flex items-center gap-2 self-start rounded-xl bg-[#b87570] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f] disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
         >
           <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <label className="w-full sm:max-w-md">
-            <span className="sr-only">Search by name, mobile, or city</span>
+          <div className="relative w-full sm:max-w-xs">
+            <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="search"
               value={search}
@@ -140,62 +150,79 @@ function VisitorProfilesPage() {
                 setPage(1);
               }}
               placeholder="Search by name, mobile, or village / city"
-              className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
             />
-          </label>
+          </div>
           <p className="text-sm text-gray-600">Total profiles: <strong className="text-gray-900">{total.toLocaleString()}</strong></p>
         </div>
       </section>
 
-      {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-      {notice && <div role="status" className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{notice}</div>}
+      {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
-      <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading ? (
-          <div className="p-8 text-center text-sm text-gray-500">Loading visitor details...</div>
+          <div className="space-y-3 p-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-12 animate-pulse rounded-xl bg-gray-100" />
+            ))}
+          </div>
         ) : profiles.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-500">No visitor details found.</div>
+          <div className="py-16 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f7ede8] text-[#b87570]">
+              <UserGroupIcon className="h-7 w-7" />
+            </div>
+            <p className="mt-4 text-lg font-medium text-gray-900">No visitor details found</p>
+            <p className="mt-1 text-sm text-gray-500">Try adjusting your search.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">Mobile</th>
-                  <th className="px-5 py-3">Village / City</th>
-                  <th className="px-5 py-3">Submitted</th>
-                  <th className="px-5 py-3">Actions</th>
+                  <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Name</th>
+                  <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Mobile</th>
+                  <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Village / City</th>
+                  <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Submitted</th>
+                  <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-50">
                 {profiles.map((profile) => (
-                  <tr key={profile.visitorId} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium text-gray-900">{profile.name}</td>
-                    <td className="px-5 py-3 text-gray-600">
-                      <div className="flex items-center gap-2 whitespace-nowrap">
-                        <a href={`tel:${profile.mobile}`} className="hover:text-indigo-600">{profile.mobile}</a>
+                  <tr key={profile.visitorId} className="transition-colors hover:bg-[#f7ede8]/40">
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f7ede8] text-sm font-semibold text-[#633b3b]">
+                          {getInitials(profile.name)}
+                        </div>
+                        <span className="font-medium text-gray-900">{profile.name}</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <a href={`tel:${profile.mobile}`} className="transition-colors hover:text-[#b87570]">{profile.mobile}</a>
                         <a
                           href={`https://wa.me/91${profile.mobile.replace(/\D/g, '').slice(-10)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`Open WhatsApp chat with ${profile.name}`}
                           title="Chat on WhatsApp"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition hover:bg-green-100"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100"
                         >
                           <WhatsAppIcon className="h-5 w-5" />
                         </a>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-gray-600">{profile.city}</td>
-                    <td className="px-5 py-3 text-gray-600">{new Date(profile.createdAt).toLocaleString('en-IN')}</td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{profile.city}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{new Date(profile.createdAt).toLocaleString('en-IN')}</td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => startEditing(profile)}
                           aria-label={`Edit ${profile.name}`}
                           title="Edit visitor details"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-[#f7ede8] hover:text-[#b87570]"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
                         </button>
@@ -208,7 +235,7 @@ function VisitorProfilesPage() {
                           }}
                           aria-label={`Delete ${profile.name}`}
                           title="Delete visitor details"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-600 hover:bg-red-50"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>
@@ -220,29 +247,29 @@ function VisitorProfilesPage() {
             </table>
           </div>
         )}
-
-        <div className="flex items-center justify-between border-t border-gray-200 px-5 py-3 text-sm text-gray-600">
-          <span>Page {page} of {totalPages}</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={loading || page <= 1}
-              onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
-              className="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              disabled={loading || page >= totalPages}
-              onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
-              className="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        </div>
       </section>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={loading || page <= 1}
+            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            disabled={loading || page >= totalPages}
+            onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {editingProfile && (
         <div
@@ -250,75 +277,80 @@ function VisitorProfilesPage() {
           aria-modal="true"
           aria-labelledby="edit-visitor-title"
           onClick={() => !savingEdit && setEditingProfile(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6"
         >
-          <div onClick={(event) => event.stopPropagation()} className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-            <div className="mb-5 flex items-center justify-between">
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <h2 id="edit-visitor-title" className="text-lg font-semibold text-gray-900">Edit visitor details</h2>
               <button
                 type="button"
                 onClick={() => setEditingProfile(null)}
                 disabled={savingEdit}
                 aria-label="Close edit form"
-                className="rounded-md p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={saveProfile} className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Name
-                <input
-                  required
-                  minLength={2}
-                  maxLength={80}
-                  value={editForm.name}
-                  onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
-                  className="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </label>
-              <label className="block text-sm font-medium text-gray-700">
-                Mobile number
-                <div className="mt-1 flex items-center rounded-md border border-gray-300 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
-                  <span className="border-r border-gray-300 px-3 py-2 text-sm text-gray-500">+91</span>
+            <form onSubmit={saveProfile} className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Name
                   <input
                     required
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={editForm.mobile}
-                    onChange={(event) => setEditForm((current) => ({
-                      ...current,
-                      mobile: event.target.value.replace(/\D/g, '').slice(-10),
-                    }))}
-                    className="block w-full border-0 text-sm shadow-none focus:ring-0"
+                    minLength={2}
+                    maxLength={80}
+                    value={editForm.name}
+                    onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   />
-                </div>
-              </label>
-              <label className="block text-sm font-medium text-gray-700">
-                Village / City
-                <input
-                  required
-                  minLength={2}
-                  maxLength={100}
-                  value={editForm.city}
-                  onChange={(event) => setEditForm((current) => ({ ...current, city: event.target.value }))}
-                  className="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </label>
-              {mutationError && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{mutationError}</p>}
-              <div className="flex justify-end gap-3 pt-2">
+                </label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Mobile number
+                  <div className="mt-1 flex items-center overflow-hidden rounded-xl border border-gray-200 focus-within:border-[#b87570] focus-within:ring-2 focus-within:ring-[#b87570]/30">
+                    <span className="border-r border-gray-200 px-3 py-2.5 text-sm text-gray-500">+91</span>
+                    <input
+                      required
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={editForm.mobile}
+                      onChange={(event) => setEditForm((current) => ({
+                        ...current,
+                        mobile: event.target.value.replace(/\D/g, '').slice(-10),
+                      }))}
+                      className="block w-full border-0 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-0"
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Village / City
+                  <input
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    value={editForm.city}
+                    onChange={(event) => setEditForm((current) => ({ ...current, city: event.target.value }))}
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
+                  />
+                </label>
+                {mutationError && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{mutationError}</p>}
+              </div>
+              <div className="flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
                 <button
                   type="button"
                   onClick={() => setEditingProfile(null)}
                   disabled={savingEdit}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#b87570] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {savingEdit ? 'Saving...' : 'Save changes'}
                 </button>
@@ -334,20 +366,36 @@ function VisitorProfilesPage() {
           aria-modal="true"
           aria-labelledby="delete-visitor-title"
           onClick={() => !deletingProfile && setProfileToDelete(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6"
         >
-          <div onClick={(event) => event.stopPropagation()} className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h2 id="delete-visitor-title" className="text-lg font-semibold text-gray-900">Delete visitor details?</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              This will permanently delete the details for <strong>{profileToDelete.name}</strong>.
-            </p>
-            {mutationError && <p role="alert" className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{mutationError}</p>}
-            <div className="mt-6 flex justify-end gap-3">
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h2 id="delete-visitor-title" className="text-lg font-semibold text-gray-900">Delete visitor details?</h2>
               <button
                 type="button"
                 onClick={() => setProfileToDelete(null)}
                 disabled={deletingProfile}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                aria-label="Close"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+              <p className="text-sm text-gray-600">
+                This will permanently delete the details for <strong>{profileToDelete.name}</strong>.
+              </p>
+              {mutationError && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{mutationError}</p>}
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setProfileToDelete(null)}
+                disabled={deletingProfile}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -355,7 +403,7 @@ function VisitorProfilesPage() {
                 type="button"
                 onClick={deleteProfile}
                 disabled={deletingProfile}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {deletingProfile ? 'Deleting...' : 'Delete'}
               </button>

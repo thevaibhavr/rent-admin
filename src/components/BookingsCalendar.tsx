@@ -9,6 +9,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { apiService } from '@/services/api';
 import { Booking } from '@/types';
 import Image from 'next/image';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import BookingForm from './BookingForm';
 
 interface CalendarEvent {
@@ -221,7 +222,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-lg ">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
         <div className="p-4">
           <style jsx global>{`
             .rbc-event {
@@ -337,13 +338,13 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
               display: none !important;
             }
             .rbc-event.rbc-selected {
-              box-shadow: 0 0 0 3px #4f46e5 !important;
+              box-shadow: 0 0 0 3px #b87570 !important;
             }
             .rbc-event.canceled {
               opacity: 0.6;
             }
             .rbc-event.rbc-selected {
-              box-shadow: 0 0 0 3px #4f46e5 !important;
+              box-shadow: 0 0 0 3px #b87570 !important;
             }
             .rbc-day-slot .rbc-event {
               border: none !important;
@@ -367,10 +368,26 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
               color: #000000 !important;
             }
             .rbc-calendar {
-              color: #000000 !important;
+              color: #111827 !important;
+            }
+            .rbc-month-view,
+            .rbc-time-view,
+            .rbc-agenda-view {
+              border: 1px solid #f3f4f6 !important;
+              border-radius: 1rem !important;
+              overflow: hidden !important;
             }
             .rbc-header {
-              color: #000000 !important;
+              padding: 8px 0 !important;
+              font-weight: 600 !important;
+              color: #6b7280 !important;
+            }
+            .rbc-month-row + .rbc-month-row,
+            .rbc-header + .rbc-header,
+            .rbc-month-view .rbc-day-bg + .rbc-day-bg,
+            .rbc-time-header-content,
+            .rbc-time-content > * + * > * {
+              border-color: #f3f4f6 !important;
             }
             .rbc-date-cell {
               color: #000000 !important;
@@ -379,7 +396,8 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
               color: #000000 !important;
             }
             .rbc-today {
-              color: #000000 !important;
+              background-color: #f7ede8 !important;
+              color: #633b3b !important;
             }
             .rbc-off-range-bg {
               color: #000000 !important;
@@ -624,7 +642,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                       e.stopPropagation();
                       handleSelectEvent(event);
                     }}
-                    className={`rbc-event-content cursor-pointer overflow-hidden ${isCanceled ? 'opacity-60' : ''} ${isCompleted ? 'ring-2 ring-green-500 ring-offset-2' : ''} hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2 transition-all`}
+                    className={`rbc-event-content cursor-pointer overflow-hidden ${isCanceled ? 'opacity-60' : ''} ${isCompleted ? 'ring-2 ring-emerald-500 ring-offset-2' : ''} hover:ring-2 hover:ring-[#b87570] hover:ring-offset-2 transition-all`}
                     style={{ 
                       height: '100%', 
                       width: '100%',
@@ -654,7 +672,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                             const parent = target.parentElement;
                             if (parent) {
                               parent.innerHTML = `
-                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #4f46e5; color: white; font-size: 0.6rem; padding: 4px; border-radius: 50%; text-align: center; word-break: break-word;">
+                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #b87570; color: white; font-size: 0.6rem; padding: 4px; border-radius: 50%; text-align: center; word-break: break-word;">
                                   ${dressName.substring(0, 10)}
                                 </div>
                               `;
@@ -663,17 +681,17 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                         />
                         {isCanceled && (
                           <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center rounded-full">
-                            <span className="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded-full">✕</span>
+                            <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">✕</span>
                           </div>
                         )}
                         {isCompleted && (
-                          <div className="absolute inset-0 bg-green-500/50 flex items-center justify-center rounded-full">
-                            <span className="text-xs font-bold text-white bg-green-600 px-2 py-1 rounded-full">✓</span>
+                          <div className="absolute inset-0 bg-emerald-500/50 flex items-center justify-center rounded-full">
+                            <span className="text-xs font-bold text-white bg-emerald-500 px-2 py-1 rounded-full">✓</span>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className={`w-full h-full flex items-center justify-center text-xs p-1 rounded-full ${isCanceled ? 'bg-red-500/70' : isCompleted ? 'bg-green-500/70' : 'bg-indigo-500'} text-white font-medium`} style={{ borderRadius: '50%' }}>
+                      <div className={`w-full h-full flex items-center justify-center text-xs p-1 rounded-full ${isCanceled ? 'bg-red-500/70' : isCompleted ? 'bg-emerald-500/70' : 'bg-[#b87570]'} text-white font-medium`} style={{ borderRadius: '50%' }}>
                         {dressName.substring(0, 10)}
                       </div>
                     )}
@@ -702,59 +720,64 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
 
       {/* Booking Details Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto text-black">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-black">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {isEditing ? 'Edit Booking' : 'Booking Details'}
               </h3>
-              <div className="flex gap-2">
-                {!isEditing && selected.status !== 'canceled' && (
-                  <>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={handleCancelClick}
-                      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
-                    >
-                      Cancel Booking
-                    </button>
-                    <button
-                      onClick={handleDeleteClick}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-                {selected.status === 'canceled' && (
-                  <div className="px-3 py-1 bg-red-100 text-red-800 rounded text-sm font-medium">
-                    Canceled
-                  </div>
-                )}
-                {selected.status === 'completed' && (
-                  <div className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">
-                    ✓ Payment Completed
-                  </div>
-                )}
-                <button
-                  onClick={() => {
-                    setSelected(null);
-                    setIsEditing(false);
-                    setShowDeleteConfirm(false);
-                    setShowCancelConfirm(false);
-                    setCancelReason('');
-                  }}
-                  className="px-4 py-2 bg-gray-200 text-black rounded hover:bg-gray-300"
-                >
-                  Close
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setSelected(null);
+                  setIsEditing(false);
+                  setShowDeleteConfirm(false);
+                  setShowCancelConfirm(false);
+                  setCancelReason('');
+                }}
+                aria-label="Close"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
             </div>
+
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              {!isEditing && (
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {selected.status !== 'canceled' && (
+                    <>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#b87570] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f]"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={handleCancelClick}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                      >
+                        Cancel Booking
+                      </button>
+                      <button
+                        onClick={handleDeleteClick}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+                  {selected.status === 'canceled' && (
+                    <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
+                      Canceled
+                    </span>
+                  )}
+                  {selected.status === 'completed' && (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                      ✓ Payment Completed
+                    </span>
+                  )}
+                </div>
+              )}
 
             {isEditing ? (
               <BookingForm
@@ -764,10 +787,10 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
             ) : (
               <div className="space-y-6">
                 {/* Customer Information Section */}
-                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 mr-2 text-[#b87570]" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                       Customer Information
@@ -867,7 +890,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                       </div>
                       {selected.customer.measurements.size && (
                         <div className="mt-2 text-center">
-                          <span className="text-sm font-medium text-purple-600">Size: {selected.customer.measurements.size}</span>
+                          <span className="text-sm font-medium text-[#633b3b]">Size: {selected.customer.measurements.size}</span>
                         </div>
                       )}
                     </div>
@@ -875,7 +898,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 </div>
 
                 {/* Financial Summary */}
-                <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <svg className="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
@@ -884,13 +907,13 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                   </h4>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                    <div className="rounded-xl border border-emerald-100 bg-white p-4">
                       <div className="text-sm font-medium text-gray-600 mb-1">Total Earnings</div>
                       <div className="text-2xl font-bold text-green-600">
                         ₹{(selected.totalPaid || 0).toLocaleString()}
                       </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                    <div className="rounded-xl border border-emerald-100 bg-white p-4">
                       <div className="text-sm font-medium text-gray-600 mb-1">Total Expenses</div>
                       <div className="text-2xl font-bold text-red-600">
                         ₹{(selected.items?.reduce((total, item) =>
@@ -898,7 +921,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                           (item.repairCost || 0) + (item.additionalCosts?.reduce((sum, cost) => sum + (cost.amount || 0), 0) || 0), 0) || 0).toLocaleString()}
                       </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                    <div className="rounded-xl border border-emerald-100 bg-white p-4">
                       <div className="text-sm font-medium text-gray-600 mb-1">Net Profit</div>
                       <div className={`text-2xl font-bold ${
                         ((selected.totalPaid || 0) - (selected.items?.reduce((total, item) =>
@@ -934,9 +957,9 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 </div>
 
                 {/* Booking Items */}
-                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <div className="rounded-2xl border border-gray-100 bg-white p-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 mr-2 text-[#633b3b]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                     </svg>
                     Booking Items ({selected.items?.length || 0})
@@ -951,10 +974,10 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                         const dressIdObj = typeof item.dressId === 'object' ? item.dressId : null;
 
                         return (
-                          <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div key={index} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                <div className="w-8 h-8 bg-[#b87570] rounded-full flex items-center justify-center text-white font-semibold text-sm">
                                   {index + 1}
                                 </div>
                                 <div>
@@ -992,7 +1015,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Discount:</span>
-                                    <span className="font-medium text-blue-600">₹{(item.discount || 0).toLocaleString()}</span>
+                                    <span className="font-medium text-[#b87570]">₹{(item.discount || 0).toLocaleString()}</span>
                                   </div>
                                 </div>
                               </div>
@@ -1043,10 +1066,10 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                                 </div>
 
                                 {item.useDress && (
-                                  <div className="mt-2 p-2 bg-purple-50 rounded text-xs">
-                                    <div className="font-medium text-purple-800">{item.useDress}</div>
+                                  <div className="mt-2 rounded-lg bg-[#f7ede8] p-2 text-xs">
+                                    <div className="font-medium text-[#633b3b]">{item.useDress}</div>
                                     {item.useDressDate && (
-                                      <div className="text-purple-600">
+                                      <div className="text-[#b87570]">
                                         {new Date(item.useDressDate).toLocaleDateString()}
                                         {item.useDressTime && ` • ${item.useDressTime}`}
                                       </div>
@@ -1062,20 +1085,20 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                                 <h6 className="text-sm font-medium text-gray-700 mb-2">Operational Costs</h6>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                                   {item.transportCost && item.transportCost > 0 && (
-                                    <div className="bg-blue-50 p-2 rounded">
-                                      <div className="text-blue-800 font-medium">Transport</div>
-                                      <div className="text-blue-600">₹{item.transportCost.toLocaleString()}</div>
+                                    <div className="rounded-lg bg-sky-50 p-2">
+                                      <div className="font-medium text-sky-800">Transport</div>
+                                      <div className="text-sky-700">₹{item.transportCost.toLocaleString()}</div>
                                     </div>
                                   )}
                                   {item.dryCleaningCost && item.dryCleaningCost > 0 && (
-                                    <div className="bg-yellow-50 p-2 rounded">
-                                      <div className="text-yellow-800 font-medium">Dry Cleaning</div>
-                                      <div className="text-yellow-600">₹{item.dryCleaningCost.toLocaleString()}</div>
+                                    <div className="rounded-lg bg-amber-50 p-2">
+                                      <div className="font-medium text-amber-800">Dry Cleaning</div>
+                                      <div className="text-amber-700">₹{item.dryCleaningCost.toLocaleString()}</div>
                                     </div>
                                   )}
                                   {item.repairCost && item.repairCost > 0 && (
-                                    <div className="bg-red-50 p-2 rounded">
-                                      <div className="text-red-800 font-medium">Repair</div>
+                                    <div className="rounded-lg bg-red-50 p-2">
+                                      <div className="font-medium text-red-800">Repair</div>
                                       <div className="text-red-600">₹{item.repairCost.toLocaleString()}</div>
                                     </div>
                                   )}
@@ -1086,7 +1109,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                                     <div className="text-xs font-medium text-gray-700 mb-1">Additional Costs:</div>
                                     <div className="flex flex-wrap gap-1">
                                       {item.additionalCosts.map((cost, costIndex) => (
-                                        <span key={costIndex} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                                        <span key={costIndex} className="rounded-lg bg-gray-100 px-2 py-1 text-xs">
                                           {cost.reason}: ₹{cost.amount?.toLocaleString() || 0}
                                         </span>
                                       ))}
@@ -1100,10 +1123,10 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                       })
                     ) : (
                       // Legacy single-item support
-                      <div className="border border-gray-300 p-4 rounded-lg">
+                      <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <div className="text-sm font-medium text-black mb-2">
+                            <div className="text-sm font-medium text-gray-900 mb-2">
                               {(selected as unknown as { dressId?: { name?: string } }).dressId?.name || 'N/A'}
                             </div>
                             {selected.dressImage && (
@@ -1112,12 +1135,12 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                                   src={selected.dressImage}
                                   alt="Dress"
                                   fill
-                                  className="object-cover rounded"
+                                  className="object-cover rounded-lg"
                                 />
                     </div>
                   )}
                           </div>
-                          <div className="space-y-2 text-sm text-black">
+                          <div className="space-y-2 text-sm text-gray-700">
                             <div>Price: ₹{selected.priceAfterBargain || 0}</div>
                             <div>Advance: ₹{selected.advance || 0}</div>
                             <div>Pending: ₹{selected.pending || 0}</div>
@@ -1132,9 +1155,9 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                 </div>
 
                 {/* Booking Details */}
-                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <div className="rounded-2xl border border-gray-100 bg-white p-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 mr-2 text-[#b87570]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                     </svg>
                     Booking Details
@@ -1194,7 +1217,7 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
 
                 {/* Notes Section */}
                 {(selected.adminNotes || selected.customerNotes) && (
-                  <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="rounded-2xl border border-gray-100 bg-white p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -1206,8 +1229,8 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                       {selected.adminNotes && (
                         <div>
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Admin Notes</h5>
-                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm text-blue-800">{selected.adminNotes}</p>
+                          <div className="rounded-xl border border-[#b87570]/20 bg-[#f7ede8] p-3">
+                            <p className="text-sm text-[#633b3b]">{selected.adminNotes}</p>
                           </div>
                         </div>
                       )}
@@ -1215,8 +1238,8 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                       {selected.customerNotes && (
                         <div>
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Customer Notes</h5>
-                          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-sm text-green-800">{selected.customerNotes}</p>
+                          <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                            <p className="text-sm text-emerald-800">{selected.customerNotes}</p>
                           </div>
                         </div>
                       )}
@@ -1226,8 +1249,8 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
 
                 {/* Status */}
                 {selected.status === 'canceled' && (
-                  <div className="mt-6 p-4 bg-red-50 rounded-lg">
-                    <div className="text-sm text-black">
+                  <div className="mt-6 rounded-xl bg-red-50 p-4">
+                    <div className="text-sm text-gray-700">
                       <div className="font-medium text-red-600 mb-2">Status: Canceled</div>
                       {selected.canceledAt && (
                         <div>Canceled At: {new Date(selected.canceledAt).toLocaleString()}</div>
@@ -1240,40 +1263,68 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
                   )}
               </div>
             )}
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
+              <button
+                onClick={() => {
+                  setSelected(null);
+                  setIsEditing(false);
+                  setShowDeleteConfirm(false);
+                  setShowCancelConfirm(false);
+                  setCancelReason('');
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Cancel Confirmation Modal */}
       {showCancelConfirm && selected && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4 text-black">
-            <h3 className="text-lg font-semibold text-black mb-4">Cancel Booking</h3>
-            <p className="text-black mb-4">
-              Are you sure you want to cancel the booking for <strong>{selected.customer.name}</strong>?
-            </p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-black">
-                Reason for Cancellation (Optional)
-              </label>
-              <textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Enter cancellation reason..."
-                className="w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black"
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+          <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Cancel Booking</h3>
               <button
                 onClick={handleCancelModalCancel}
-                className="px-4 py-2 bg-gray-200 text-black rounded hover:bg-gray-300"
+                aria-label="Close"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to cancel the booking for <strong className="font-semibold text-gray-900">{selected.customer.name}</strong>?
+              </p>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Reason for Cancellation (Optional)
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Enter cancellation reason..."
+                  className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
+              <button
+                onClick={handleCancelModalCancel}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCancelConfirm}
-                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-600"
               >
                 Confirm Cancel
               </button>
@@ -1284,23 +1335,35 @@ const BookingsCalendar: React.FC<Props> = ({ onRefresh }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && selected && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4 text-black">
-            <h3 className="text-lg font-semibold text-black mb-4">Confirm Delete</h3>
-            <p className="text-black mb-6">
-              Are you sure you want to delete the booking for <strong>{selected.customer.name}</strong>? 
-              This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+          <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
               <button
                 onClick={handleDeleteCancel}
-                className="px-4 py-2 bg-gray-200 text-black rounded hover:bg-gray-300"
+                aria-label="Close"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete the booking for <strong className="font-semibold text-gray-900">{selected.customer.name}</strong>? This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
+              <button
+                onClick={handleDeleteCancel}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
               >
                 Delete
               </button>

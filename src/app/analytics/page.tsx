@@ -1,12 +1,33 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowPathIcon, ArrowTopRightOnSquareIcon, CursorArrowRaysIcon, EyeIcon, MagnifyingGlassIcon, TagIcon, UsersIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
+  ChartBarIcon,
+  CursorArrowRaysIcon,
+  EyeIcon,
+  MagnifyingGlassIcon,
+  PhoneIcon,
+  TagIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiService } from '@/services/api';
-import type { AnalyticsDashboardData } from '@/types';
+import type { AnalyticsDashboardData, AnalyticsViewer, ProductActivityStat } from '@/types';
 
 type Period = 'today' | '7days' | '30days' | 'month' | 'custom';
 
@@ -16,6 +37,13 @@ const asDateInput = (date: Date) => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+const formatDay = (value: string) => {
+  const date = new Date(`${value}T00:00:00`);
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
+
+const formatHour = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
 
 function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('7days');
@@ -28,6 +56,8 @@ function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dressQuery, setDressQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'viewed' | 'clicked'>('viewed');
 
   const loadAnalytics = useCallback(async () => {
     setLoading(true);
@@ -52,253 +82,466 @@ function AnalyticsPage() {
   }, [loadAnalytics]);
 
   const summary = data?.summary;
+  const dressRows = activeTab === 'viewed' ? data?.products ?? [] : data?.mostClickedProducts ?? [];
+  const filteredDresses = useMemo(() => {
+    const query = dressQuery.trim().toLowerCase();
+    if (!query) return dressRows;
+    return dressRows.filter((product) => (product.name || '').toLowerCase().includes(query));
+  }, [dressQuery, dressRows]);
+
   const cards = [
-    { label: 'Total Dress Views', value: summary?.totalProductViews ?? 0, icon: EyeIcon },
-    { label: 'Dress Clicks', value: summary?.totalProductClicks ?? 0, icon: CursorArrowRaysIcon },
-    { label: 'Unique Visitors', value: summary?.uniqueVisitors ?? 0, icon: UsersIcon },
-    { label: 'Repeat Visitors', value: summary?.repeatVisitors ?? 0, icon: UsersIcon },
-    { label: 'Category Clicks', value: summary?.totalCategoryClicks ?? 0, icon: TagIcon },
-    { label: 'Searches', value: summary?.totalSearches ?? 0, icon: MagnifyingGlassIcon },
-    { label: 'Visitor Details Collected', value: summary?.visitorProfilesCount ?? 0, icon: UsersIcon },
+    {
+      label: 'Dress views',
+      hint: 'Kitni baar dress page khuli',
+      value: summary?.totalProductViews ?? 0,
+      icon: EyeIcon,
+      tone: 'rose',
+    },
+    {
+      label: 'Unique people',
+      hint: 'Alag-alag visitors',
+      value: summary?.uniqueVisitors ?? 0,
+      icon: UsersIcon,
+      tone: 'indigo',
+    },
+    {
+      label: 'Known contacts',
+      hint: 'Naam/mobile diya hua',
+      value: summary?.identifiedVisitors ?? 0,
+      icon: PhoneIcon,
+      tone: 'green',
+    },
+    {
+      label: 'Unknown visitors',
+      hint: 'Details nahi mili',
+      value: summary?.unknownVisitors ?? 0,
+      icon: UsersIcon,
+      tone: 'slate',
+    },
+    {
+      label: 'Repeat visitors',
+      hint: 'Jo 1 se zyada baar aaye',
+      value: summary?.repeatVisitors ?? 0,
+      icon: ArrowPathIcon,
+      tone: 'amber',
+    },
+    {
+      label: 'Dress clicks',
+      hint: 'Card/list se dress open',
+      value: summary?.totalProductClicks ?? 0,
+      icon: CursorArrowRaysIcon,
+      tone: 'sky',
+    },
+    {
+      label: 'Click rate',
+      hint: 'Clicks / views',
+      value: `${summary?.clickThroughRate ?? 0}%`,
+      icon: ChartBarIcon,
+      tone: 'violet',
+    },
+    {
+      label: 'Avg views / person',
+      hint: 'Ek visitor kitni baar dekhta hai',
+      value: summary?.avgViewsPerVisitor ?? 0,
+      icon: EyeIcon,
+      tone: 'rose',
+    },
+    {
+      label: 'Category clicks',
+      hint: 'Kaunsi category chali',
+      value: summary?.totalCategoryClicks ?? 0,
+      icon: TagIcon,
+      tone: 'orange',
+    },
+    {
+      label: 'Searches',
+      hint: 'Log kya dhoondh rahe hain',
+      value: summary?.totalSearches ?? 0,
+      icon: MagnifyingGlassIcon,
+      tone: 'teal',
+    },
   ];
+
+  const topDressChart = (data?.products ?? []).slice(0, 8).map((product) => ({
+    name: (product.name || 'Unnamed').slice(0, 18),
+    views: product.totalViews,
+    people: product.uniqueVisitors,
+  }));
+
+  const busyHours = (data?.hourlyViews ?? []).filter((row) => row.views > 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">User Activity &amp; Analytics</h1>
-          <p className="mt-1 text-sm text-gray-500">See which dresses, categories and searches are getting attention.</p>
-        </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="text-sm font-medium text-gray-700">
-            Date range
-            <select
-              value={period}
-              onChange={(event) => setPeriod(event.target.value as Period)}
-              className="mt-1 block rounded-md border-gray-300 py-2 pl-3 pr-8 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-              <option value="today">Today</option>
-              <option value="7days">Last 7 Days</option>
-              <option value="30days">Last 30 Days</option>
-              <option value="month">This Month</option>
-              <option value="custom">Custom Range</option>
-            </select>
-          </label>
-          {period === 'custom' && (
-            <>
-              <label className="text-sm font-medium text-gray-700">
-                From
-                <input type="date" value={startDate} max={endDate} onChange={(event) => setStartDate(event.target.value)} className="mt-1 block rounded-md border-gray-300 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-              </label>
-              <label className="text-sm font-medium text-gray-700">
-                To
-                <input type="date" value={endDate} min={startDate} max={asDateInput(new Date())} onChange={(event) => setEndDate(event.target.value)} className="mt-1 block rounded-md border-gray-300 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-              </label>
-            </>
-          )}
-          <button type="button" onClick={loadAnalytics} disabled={loading} className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
-            <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-        </div>
-      </div>
-
-      {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-7">
-        {cards.map(({ label, value, icon: Icon }) => (
-          <div key={label} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-500">{label}</p>
-              <Icon className="h-5 w-5 text-indigo-500" />
-            </div>
-            <p className="mt-3 text-3xl font-semibold text-gray-900">{loading ? '—' : value.toLocaleString()}</p>
+      <section className="overflow-hidden rounded-3xl bg-[#3a2a28] px-5 py-6 text-white shadow-sm sm:px-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#e0b78f]">Dress interest</p>
+            <h1 className="mt-2 font-serif text-3xl leading-tight sm:text-4xl">Kaun si dress dekh rahe hain?</h1>
+            <p className="mt-2 text-sm leading-6 text-[#eadfd9]">
+              Number pe hover/tap karein — pata chalega kaun-kaun dekha. Details nahi hain to naam <span className="font-semibold text-white">Unknown</span> dikhega.
+            </p>
           </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="text-xs font-medium text-[#eadfd9]">
+              Date range
+              <select
+                value={period}
+                onChange={(event) => setPeriod(event.target.value as Period)}
+                className="mt-1 block rounded-xl border-0 bg-white/10 py-2.5 pl-3 pr-8 text-sm text-white outline-none ring-1 ring-white/15"
+              >
+                <option className="text-gray-900" value="today">Today</option>
+                <option className="text-gray-900" value="7days">Last 7 days</option>
+                <option className="text-gray-900" value="30days">Last 30 days</option>
+                <option className="text-gray-900" value="month">This month</option>
+                <option className="text-gray-900" value="custom">Custom</option>
+              </select>
+            </label>
+            {period === 'custom' && (
+              <>
+                <label className="text-xs font-medium text-[#eadfd9]">
+                  From
+                  <input type="date" value={startDate} max={endDate} onChange={(event) => setStartDate(event.target.value)} className="mt-1 block rounded-xl border-0 bg-white/10 py-2 text-sm text-white outline-none ring-1 ring-white/15" />
+                </label>
+                <label className="text-xs font-medium text-[#eadfd9]">
+                  To
+                  <input type="date" value={endDate} min={startDate} max={asDateInput(new Date())} onChange={(event) => setEndDate(event.target.value)} className="mt-1 block rounded-xl border-0 bg-white/10 py-2 text-sm text-white outline-none ring-1 ring-white/15" />
+                </label>
+              </>
+            )}
+            <button type="button" onClick={loadAnalytics} disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#e0b78f] px-4 text-sm font-semibold text-[#3a2a28] hover:bg-[#edd0b3] disabled:opacity-50">
+              <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {error && <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        {cards.map(({ label, hint, value, icon: Icon, tone }) => (
+          <article key={label} className="rounded-2xl border border-[#eadfd9] bg-white p-4 shadow-[0_8px_24px_rgba(58,42,40,0.04)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[#342b29]">{label}</p>
+                <p className="mt-0.5 text-xs text-[#7a635c]">{hint}</p>
+              </div>
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full ${toneClass(tone)}`}>
+                <Icon className="h-4 w-4" />
+              </span>
+            </div>
+            <p className="mt-4 text-3xl font-semibold tracking-tight text-[#342b29]">{loading ? '—' : value.toLocaleString?.() ?? value}</p>
+          </article>
         ))}
       </div>
 
       {loading && !data ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Loading activity data...</div>
+        <div className="rounded-2xl border border-[#eadfd9] bg-white p-10 text-center text-sm text-[#7a635c]">Analytics load ho raha hai...</div>
       ) : (
-        <div className="grid gap-6 xl:grid-cols-2">
-          <DressTable title="Most Viewed Dresses" rows={data?.products ?? []} />
-          <DressTable title="Most Clicked Dresses" rows={data?.mostClickedProducts ?? []} />
+        <>
+          <div className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+            <ChartCard title="Rozana interest" subtitle="Views, clicks aur unique log">
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={data?.dailyTrend ?? []}>
+                    <CartesianGrid stroke="#f0e6e0" strokeDasharray="4 4" />
+                    <XAxis dataKey="date" tickFormatter={formatDay} tick={{ fill: '#7a635c', fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: '#7a635c', fontSize: 12 }} />
+                    <Tooltip labelFormatter={formatDay} />
+                    <Line type="monotone" dataKey="views" name="Views" stroke="#a85f67" strokeWidth={2.5} dot={false} />
+                    <Line type="monotone" dataKey="clicks" name="Clicks" stroke="#218c58" strokeWidth={2.5} dot={false} />
+                    <Line type="monotone" dataKey="uniqueVisitors" name="Unique people" stroke="#6b5ea8" strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+            <ChartCard title="Sabse zyada dekhi gayi" subtitle="Top 8 dresses">
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topDressChart} layout="vertical" margin={{ left: 8, right: 12 }}>
+                    <CartesianGrid stroke="#f0e6e0" strokeDasharray="4 4" />
+                    <XAxis type="number" allowDecimals={false} tick={{ fill: '#7a635c', fontSize: 12 }} />
+                    <YAxis type="category" dataKey="name" width={110} tick={{ fill: '#342b29', fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="views" name="Views" fill="#a85f67" radius={[0, 8, 8, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+          </div>
 
-          <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-200 px-5 py-4">
-              <h2 className="font-semibold text-gray-900">Popular Categories</h2>
+          <section className="rounded-2xl border border-[#eadfd9] bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-[#342b29]">Dress-wise viewers</h2>
+                <p className="mt-1 text-sm text-[#7a635c]">Unique people wale number pe hover/tap karein. Unknown = details nahi di.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex rounded-full bg-[#f7efe9] p-1">
+                  <button type="button" onClick={() => setActiveTab('viewed')} className={`rounded-full px-4 py-2 text-sm font-medium ${activeTab === 'viewed' ? 'bg-white text-[#754b4f] shadow-sm' : 'text-[#7a635c]'}`}>Most viewed</button>
+                  <button type="button" onClick={() => setActiveTab('clicked')} className={`rounded-full px-4 py-2 text-sm font-medium ${activeTab === 'clicked' ? 'bg-white text-[#754b4f] shadow-sm' : 'text-[#7a635c]'}`}>Most clicked</button>
+                </div>
+                <input
+                  value={dressQuery}
+                  onChange={(event) => setDressQuery(event.target.value)}
+                  placeholder="Dress search..."
+                  className="min-h-10 rounded-full border border-[#eadfd9] px-4 text-sm outline-none focus:border-[#b88b87]"
+                />
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
-                  <tr><th className="px-5 py-3">Category</th><th className="px-5 py-3">Clicks</th><th className="px-5 py-3">Unique Visitors</th></tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {data?.categories.map((category) => (
-                    <tr key={category.categorySlug}>
-                      <td className="px-5 py-3 font-medium text-gray-900">{category.name || category.categorySlug}</td>
-                      <td className="px-5 py-3 text-gray-600">{category.totalClicks}</td>
-                      <td className="px-5 py-3 text-gray-600">{category.uniqueVisitors}</td>
-                    </tr>
-                  ))}
-                  {!data?.categories.length && <EmptyRow colSpan={3} />}
-                </tbody>
-              </table>
+            <div className="mt-5 grid gap-4">
+              {filteredDresses.map((product, index) => (
+                <DressRow key={`${activeTab}-${product.productId}`} product={product} rank={index + 1} />
+              ))}
+              {!filteredDresses.length && (
+                <p className="rounded-xl bg-[#fcf9f6] px-4 py-8 text-center text-sm text-[#7a635c]">Is range mein koi dress activity nahi mili.</p>
+              )}
             </div>
           </section>
 
-          <KeywordTable title="Most Searched Keywords" rows={data?.searchKeywords ?? []} countLabel="Searches" countKey="searches" />
-          <KeywordTable title="Searches With No Results" rows={data?.noResultSearches ?? []} countLabel="No results" countKey="noResultSearches" />
-          <VisitorProfileTable rows={data?.visitorProfiles ?? []} />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <ChartCard title="Busy hours" subtitle="Kaun se time pe zyada log dresses dekhte hain">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data?.hourlyViews ?? []}>
+                    <CartesianGrid stroke="#f0e6e0" strokeDasharray="4 4" />
+                    <XAxis dataKey="hour" tickFormatter={formatHour} interval={2} tick={{ fill: '#7a635c', fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: '#7a635c', fontSize: 12 }} />
+                    <Tooltip labelFormatter={(hour) => formatHour(Number(hour))} />
+                    <Bar dataKey="views" name="Views" fill="#c48a6a" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              {busyHours.length === 0 && <p className="mt-2 text-sm text-[#7a635c]">Abhi hour-wise data nahi hai.</p>}
+            </ChartCard>
+
+            <section className="rounded-2xl border border-[#eadfd9] bg-white p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-[#342b29]">Most active people</h2>
+              <p className="mt-1 text-sm text-[#7a635c]">Jo visitors sabse zyada dresses dekh rahe hain.</p>
+              <div className="mt-4 space-y-3">
+                {(data?.topVisitors ?? []).map((visitor) => (
+                  <div key={visitor.visitorId} className="flex items-center justify-between gap-3 rounded-xl bg-[#fcf9f6] px-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-[#342b29]">{visitor.name}</p>
+                      <p className="truncate text-xs text-[#7a635c]">
+                        {visitor.isUnknown ? 'Details nahi mili' : [visitor.mobile, visitor.city].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold text-[#754b4f]">{visitor.views} views</p>
+                      <p className="text-xs text-[#7a635c]">{visitor.uniqueDresses} dresses</p>
+                    </div>
+                  </div>
+                ))}
+                {!data?.topVisitors.length && <p className="py-6 text-center text-sm text-[#7a635c]">Abhi koi visitor activity nahi hai.</p>}
+              </div>
+            </section>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <SimpleTable
+              title="Popular categories"
+              headers={['Category', 'Clicks', 'People']}
+              rows={(data?.categories ?? []).slice(0, 10).map((category) => [
+                category.name || category.categorySlug,
+                String(category.totalClicks),
+                String(category.uniqueVisitors),
+              ])}
+            />
+            <SimpleTable
+              title="Most searched"
+              headers={['Keyword', 'Searches', 'People']}
+              rows={(data?.searchKeywords ?? []).map((row) => [row.keyword, String(row.searches), String(row.uniqueVisitors)])}
+            />
+            <SimpleTable
+              title="Searches with no results"
+              headers={['Keyword', 'No results', 'People']}
+              rows={(data?.noResultSearches ?? []).map((row) => [row.keyword, String(row.noResultSearches), String(row.uniqueVisitors)])}
+            />
+            <section className="rounded-2xl border border-[#eadfd9] bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#342b29]">New visitor details</h2>
+                <Link href="/visitor-profiles" className="text-sm font-medium text-[#8e565b] hover:text-[#60373b]">View all</Link>
+              </div>
+              <div className="mt-4 space-y-3">
+                {(data?.visitorProfiles ?? []).map((profile) => (
+                  <div key={profile.visitorId} className="flex items-center justify-between gap-3 rounded-xl bg-[#fcf9f6] px-3 py-3">
+                    <div>
+                      <p className="font-medium text-[#342b29]">{profile.name}</p>
+                      <p className="text-xs text-[#7a635c]">{profile.mobile} · {profile.city}</p>
+                    </div>
+                    <p className="text-xs text-[#7a635c]">{new Date(profile.createdAt).toLocaleDateString('en-IN')}</p>
+                  </div>
+                ))}
+                {!data?.visitorProfiles.length && <p className="py-6 text-center text-sm text-[#7a635c]">Is range mein koi naya contact nahi aaya.</p>}
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function DressRow({ product, rank }: { product: ProductActivityStat; rank: number }) {
+  const known = product.viewers.filter((viewer) => !viewer.isUnknown).length;
+  const unknown = product.uniqueVisitors - known;
+
+  return (
+    <article className="flex flex-col gap-4 rounded-2xl border border-[#f0e6e0] bg-[#fffdfa] p-4 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <span className="w-6 text-sm font-semibold text-[#b88b87]">{rank}</span>
+        {product.imageUrl ? (
+          <Image src={product.imageUrl} alt={product.name} width={56} height={72} unoptimized className="h-[72px] w-14 rounded-xl object-cover" />
+        ) : (
+          <div className="flex h-[72px] w-14 items-center justify-center rounded-xl bg-[#eee4de] text-[10px] text-[#9a8580]">No img</div>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-[#342b29]">{product.name || 'Unnamed dress'}</p>
+          <p className="mt-1 text-sm text-[#7a635c]">{product.totalViews} views · {product.totalClicks} clicks · {product.repeatVisitors} repeat</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+        <StatChip label="Views" value={product.totalViews} />
+        <ViewersHover count={product.uniqueVisitors} viewers={product.viewers} unknownCount={Math.max(unknown, 0)} />
+        <a href={product.detailUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 rounded-full border border-[#eadfd9] px-3 text-sm font-medium text-[#754b4f]">
+          Open <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+        </a>
+      </div>
+    </article>
+  );
+}
+
+function ViewersHover({
+  count,
+  viewers,
+  unknownCount,
+}: {
+  count: number;
+  viewers: AnalyticsViewer[];
+  unknownCount: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: MouseEvent) => {
+      if (!wrapRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointer);
+    return () => document.removeEventListener('mousedown', onPointer);
+  }, [open]);
+
+  return (
+    <div
+      ref={wrapRef}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="rounded-full bg-[#f4e7e2] px-3 py-2 text-left"
+        aria-expanded={open}
+      >
+        <p className="text-[10px] uppercase tracking-wide text-[#9a7771]">Unique people</p>
+        <p className="text-lg font-semibold text-[#754b4f] underline decoration-dotted underline-offset-4">{count}</p>
+      </button>
+      {open && (
+        <div className="absolute right-0 z-30 mt-2 w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#eadfd9] bg-white shadow-[0_18px_40px_rgba(58,42,40,0.16)]">
+          <div className="border-b border-[#f0e6e0] px-4 py-3">
+            <p className="text-sm font-semibold text-[#342b29]">In logon ne ye dress dekhi</p>
+            <p className="text-xs text-[#7a635c]">{count} unique · {unknownCount} Unknown</p>
+          </div>
+          <ul className="max-h-72 overflow-y-auto p-2">
+            {viewers.map((viewer) => (
+              <li key={viewer.visitorId} className="rounded-xl px-3 py-2 hover:bg-[#fcf9f6]">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-[#342b29]">{viewer.name}</p>
+                    <p className="truncate text-xs text-[#7a635c]">
+                      {viewer.isUnknown ? 'Details nahi mili' : [viewer.mobile, viewer.city].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs font-semibold text-[#754b4f]">{viewer.views}x</span>
+                </div>
+              </li>
+            ))}
+            {!viewers.length && <li className="px-3 py-6 text-center text-sm text-[#7a635c]">Koi viewer nahi mila.</li>}
+          </ul>
         </div>
       )}
     </div>
   );
 }
 
-function VisitorProfileTable({ rows }: { rows: AnalyticsDashboardData['visitorProfiles'] }) {
+function StatChip({ label, value }: { label: string; value: number }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm xl:col-span-2">
-      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-        <h2 className="font-semibold text-gray-900">Recently Collected Visitor Details</h2>
-        <Link href="/visitor-profiles" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-          View all
-        </Link>
-      </div>
-      <p className="px-5 py-2 text-xs text-gray-500">Profiles collected within the selected date range.</p>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
-            <tr>
-              <th className="px-5 py-3">Name</th>
-              <th className="px-5 py-3">Mobile</th>
-              <th className="px-5 py-3">Village / City</th>
-              <th className="px-5 py-3">Submitted</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {rows.map((profile) => (
-              <tr key={profile.visitorId}>
-                <td className="px-5 py-3 font-medium text-gray-900">{profile.name}</td>
-                <td className="px-5 py-3 text-gray-600">
-                  <a href={`tel:${profile.mobile}`} className="hover:text-indigo-600">{profile.mobile}</a>
-                </td>
-                <td className="px-5 py-3 text-gray-600">{profile.city}</td>
-                <td className="px-5 py-3 text-gray-600">{new Date(profile.createdAt).toLocaleDateString('en-IN')}</td>
-              </tr>
-            ))}
-            {!rows.length && <EmptyRow colSpan={4} />}
-          </tbody>
-        </table>
-      </div>
+    <div className="rounded-full bg-white px-3 py-2 ring-1 ring-[#eadfd9]">
+      <p className="text-[10px] uppercase tracking-wide text-[#9a7771]">{label}</p>
+      <p className="text-lg font-semibold text-[#342b29]">{value}</p>
+    </div>
+  );
+}
+
+function ChartCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-[#eadfd9] bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-[#342b29]">{title}</h2>
+      <p className="mt-1 text-sm text-[#7a635c]">{subtitle}</p>
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
 
-function DressTable({ title, rows }: { title: string; rows: AnalyticsDashboardData['products'] }) {
+function SimpleTable({ title, headers, rows }: { title: string; headers: string[]; rows: string[][] }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="font-semibold text-gray-900">{title}</h2>
+    <section className="overflow-hidden rounded-2xl border border-[#eadfd9] bg-white shadow-sm">
+      <div className="px-5 py-4">
+        <h2 className="text-lg font-semibold text-[#342b29]">{title}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-[760px] divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+        <table className="min-w-full text-sm">
+          <thead className="bg-[#fcf9f6] text-left text-xs uppercase tracking-wide text-[#9a7771]">
             <tr>
-              <th className="px-5 py-3">Dress</th>
-              <th className="px-5 py-3">Views</th>
-              <th className="px-5 py-3">Clicks</th>
-              <th className="px-5 py-3">Viewers</th>
-              <th className="px-5 py-3">Repeat</th>
-              <th className="px-5 py-3">Click Visitors</th>
-              <th className="px-5 py-3">Detail</th>
+              {headers.map((header) => <th key={header} className="px-5 py-3 font-medium">{header}</th>)}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
-            {rows.map((product) => (
-              <tr key={product.productId}>
-                <td className="px-5 py-3">
-                  <div className="flex items-center gap-3">
-                    {product.imageUrl ? (
-                      <Image
-                        src={product.imageUrl}
-                        alt={product.name}
-                        width={48}
-                        height={64}
-                        unoptimized
-                        className="h-16 w-12 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-16 w-12 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">No image</div>
-                    )}
-                    <span className="max-w-[180px] font-medium text-gray-900">{product.name || 'Unnamed dress'}</span>
-                  </div>
-                </td>
-                <td className="px-5 py-3 text-gray-600">{product.totalViews}</td>
-                <td className="px-5 py-3 text-gray-600">{product.totalClicks}</td>
-                <td className="px-5 py-3 text-gray-600">{product.uniqueVisitors}</td>
-                <td className="px-5 py-3 text-gray-600">{product.repeatVisitors}</td>
-                <td className="px-5 py-3 text-gray-600">{product.uniqueClickVisitors}</td>
-                <td className="px-5 py-3">
-                  <a
-                    href={product.detailUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-indigo-600 hover:text-indigo-800"
-                  >
-                    View dress
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  </a>
-                </td>
-              </tr>
-            ))}
-            {!rows.length && <EmptyRow colSpan={7} />}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function EmptyRow({ colSpan }: { colSpan: number }) {
-  return <tr><td colSpan={colSpan} className="px-5 py-8 text-center text-gray-500">No activity for this date range yet.</td></tr>;
-}
-
-function KeywordTable({
-  title,
-  rows,
-  countLabel,
-  countKey,
-}: {
-  title: string;
-  rows: AnalyticsDashboardData['searchKeywords'];
-  countLabel: string;
-  countKey: 'searches' | 'noResultSearches';
-}) {
-  return (
-    <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="font-semibold text-gray-900">{title}</h2>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
-            <tr><th className="px-5 py-3">Keyword</th><th className="px-5 py-3">{countLabel}</th><th className="px-5 py-3">Unique Visitors</th></tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#f0e6e0]">
             {rows.map((row) => (
-              <tr key={row.keyword}>
-                <td className="px-5 py-3 font-medium text-gray-900">{row.keyword}</td>
-                <td className="px-5 py-3 text-gray-600">{row[countKey]}</td>
-                <td className="px-5 py-3 text-gray-600">{row.uniqueVisitors}</td>
+              <tr key={row.join('-')}>
+                {row.map((cell, index) => (
+                  <td key={`${cell}-${index}`} className={`px-5 py-3 ${index === 0 ? 'font-medium text-[#342b29]' : 'text-[#7a635c]'}`}>{cell}</td>
+                ))}
               </tr>
             ))}
-            {!rows.length && <EmptyRow colSpan={3} />}
+            {!rows.length && (
+              <tr>
+                <td colSpan={headers.length} className="px-5 py-8 text-center text-[#7a635c]">No data yet.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
     </section>
   );
+}
+
+function toneClass(tone: string) {
+  const tones: Record<string, string> = {
+    rose: 'bg-[#f8e9e8] text-[#a85f67]',
+    indigo: 'bg-[#eee8fb] text-[#6b5ea8]',
+    green: 'bg-[#e7f4ec] text-[#218c58]',
+    slate: 'bg-[#eeeae8] text-[#6f635e]',
+    amber: 'bg-[#f8eedd] text-[#b07a2e]',
+    sky: 'bg-[#e7f2fb] text-[#3b7ca8]',
+    violet: 'bg-[#f1e8fb] text-[#7a4ea3]',
+    orange: 'bg-[#f8ebe3] text-[#c26a3a]',
+    teal: 'bg-[#e6f4f1] text-[#2f8a7b]',
+  };
+  return tones[tone] ?? tones.rose;
 }
 
 export default function AnalyticsPageWrapper() {

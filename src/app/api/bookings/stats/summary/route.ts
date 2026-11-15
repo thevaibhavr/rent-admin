@@ -210,6 +210,64 @@ export async function GET(request: NextRequest) {
       return !booking.sendDate || (booking.sendDate && !booking.receiveDate);
     }).length;
 
+    // ---- Monthly trend for the last 12 months (independent of the active filter) ----
+    const trendStart = new Date();
+    trendStart.setDate(1);
+    trendStart.setHours(0, 0, 0, 0);
+    trendStart.setMonth(trendStart.getMonth() - 11);
+
+    const trendBookings = await Booking.find({
+      createdAt: { $gte: trendStart },
+      status: { $ne: 'canceled' },
+    }).select('createdAt totalPrice netProfit');
+
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const trendMap = new Map<string, { revenue: number; profit: number; bookings: number }>();
+    const trendMonthKeys: string[] = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(trendStart);
+      d.setMonth(trendStart.getMonth() + i);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      trendMonthKeys.push(key);
+      trendMap.set(key, { revenue: 0, profit: 0, bookings: 0 });
+    }
+    trendBookings.forEach((booking) => {
+      const d = new Date(booking.createdAt);
+      const entry = trendMap.get(`${d.getFullYear()}-${d.getMonth()}`);
+      if (!entry) return;
+      entry.revenue += booking.totalPrice || 0;
+      entry.profit += booking.netProfit || 0;
+      entry.bookings += 1;
+    });
+    const monthlyTrend = trendMonthKeys.map((key) => {
+      const [, monthIndex] = key.split('-').map(Number);
+      const entry = trendMap.get(key)!;
+      return {
+        month: monthLabels[monthIndex],
+        revenue: entry.revenue,
+        profit: entry.profit,
+        bookings: entry.bookings,
+      };
+    });
+
+    // ---- Recent bookings (respects the active filter) ----
+    const recentDocs = await Booking.find(dateFilter)
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .select('bookingId customer items totalPrice totalPaid status createdAt');
+
+    const recentBookings = recentDocs.map((booking) => ({
+      _id: String(booking._id),
+      bookingId: booking.bookingId,
+      customerName: booking.customer?.name || 'Unknown',
+      customerMobile: booking.customer?.mobile || '',
+      itemsCount: booking.items?.length || 0,
+      totalPrice: booking.totalPrice || 0,
+      totalPaid: booking.totalPaid || 0,
+      status: booking.status || 'active',
+      createdAt: booking.createdAt,
+    }));
+
     const stats = {
       totalBookings,
       totalCustomers,
@@ -232,6 +290,8 @@ export async function GET(request: NextRequest) {
       completedBookings,
       canceledBookings,
       pendingBookings,
+      monthlyTrend,
+      recentBookings,
     };
 
     return ok({ summary: stats }, 200, 'Booking statistics fetched');

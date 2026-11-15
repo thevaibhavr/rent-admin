@@ -3,16 +3,24 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
-import { Product, Category, ProductSize, Merchant, Occasion } from '@/types';
+import { Product, Category, ProductSize, Merchant, Occasion, PaginatedResponse } from '@/types';
 import { apiService } from '@/services/api';
-import { PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MultiImageUpload from '@/components/MultiImageUpload';
-import { 
+import {
   MagnifyingGlassIcon,
-  PlusIcon
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  StarIcon,
+  SparklesIcon,
+  PhotoIcon,
+  XMarkIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline';
+
+const inr = (value: number) => `₹${Math.round(value || 0).toLocaleString('en-IN')}`;
 
 const getProductErrorMessage = (error: unknown, fallback: string): string => {
   if (axios.isAxiosError<{ message?: string }>(error)) {
@@ -21,6 +29,423 @@ const getProductErrorMessage = (error: unknown, fallback: string): string => {
   }
   return error instanceof Error ? error.message : fallback;
 };
+
+type ProductFormState = {
+  name: string;
+  description: string;
+  categories: string[];
+  occasions: string[];
+  Owner: string;
+  images: string[];
+  price: number;
+  originalPrice: number;
+  deposit: number;
+  sizes: ProductSize[];
+  color: string;
+  rentalDuration: number;
+  condition: NonNullable<Product['condition']>;
+  brand: string;
+  material: string;
+  tags: string[];
+  careInstructions: string;
+  isFeatured: boolean;
+  isAvailable: boolean;
+};
+
+const createEmptyForm = (): ProductFormState => ({
+  name: '',
+  description: '',
+  categories: [],
+  occasions: [],
+  Owner: '',
+  images: [''],
+  price: 0,
+  originalPrice: 0,
+  deposit: 0,
+  sizes: [{ size: 'M', isAvailable: true, quantity: 1 }],
+  color: '',
+  rentalDuration: 1,
+  condition: 'Good',
+  brand: '',
+  material: '',
+  tags: [''],
+  careInstructions: '',
+  isFeatured: false,
+  isAvailable: true,
+});
+
+const inputClass =
+  'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30';
+const labelClass = 'block text-sm font-medium text-gray-700';
+const checkboxClass =
+  'rounded border-gray-300 text-[#b87570] shadow-sm focus:border-[#b87570] focus:ring focus:ring-[#b87570]/30';
+
+function ProductForm({
+  formData,
+  setFormData,
+  categories,
+  merchants,
+  occasions,
+}: {
+  formData: ProductFormState;
+  setFormData: React.Dispatch<React.SetStateAction<ProductFormState>>;
+  categories: Category[];
+  merchants: Merchant[];
+  occasions: Occasion[];
+}) {
+  const toggleCategory = (id: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: checked ? [...prev.categories, id] : prev.categories.filter((c) => c !== id),
+    }));
+  };
+
+  const toggleOccasion = (id: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      occasions: checked ? [...prev.occasions, id] : prev.occasions.filter((o) => o !== id),
+    }));
+  };
+
+  const addSizeField = () =>
+    setFormData((prev) => ({ ...prev, sizes: [...prev.sizes, { size: 'M', isAvailable: true, quantity: 1 }] }));
+  const removeSizeField = (index: number) =>
+    setFormData((prev) => ({ ...prev, sizes: prev.sizes.filter((_, i) => i !== index) }));
+  const updateSizeField = (index: number, field: keyof ProductSize, value: string | number | boolean) =>
+    setFormData((prev) => {
+      const sizes = [...prev.sizes];
+      sizes[index] = { ...sizes[index], [field]: value };
+      return { ...prev, sizes };
+    });
+
+  const addTagField = () => setFormData((prev) => ({ ...prev, tags: [...prev.tags, ''] }));
+  const removeTagField = (index: number) =>
+    setFormData((prev) => ({ ...prev, tags: prev.tags.filter((_, i) => i !== index) }));
+  const updateTagField = (index: number, value: string) =>
+    setFormData((prev) => {
+      const tags = [...prev.tags];
+      tags[index] = value;
+      return { ...prev, tags };
+    });
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>Name</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className={inputClass}
+            placeholder="Product name"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Merchant</label>
+          <select
+            value={formData.Owner}
+            onChange={(e) => setFormData({ ...formData, Owner: e.target.value })}
+            className={inputClass}
+          >
+            <option value="">Select Merchant (Optional)</option>
+            {merchants.map((merchant) => (
+              <option key={merchant._id} value={merchant._id}>
+                {merchant.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Categories</label>
+        <div className="mt-1 grid max-h-36 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-gray-200 p-3 sm:grid-cols-3">
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <label key={category._id} className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={formData.categories.includes(category._id)}
+                  onChange={(e) => toggleCategory(category._id, e.target.checked)}
+                  className={checkboxClass}
+                />
+                {category.name}
+              </label>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No categories available.</p>
+          )}
+        </div>
+        {formData.categories.length === 0 && (
+          <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
+        )}
+      </div>
+
+      <fieldset>
+        <legend className={labelClass}>Occasions (optional)</legend>
+        <div className="mt-1 grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-lg border border-gray-200 p-3 sm:grid-cols-2">
+          {occasions.length > 0 ? (
+            occasions.map((occasion) => (
+              <label key={occasion._id} className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={formData.occasions.includes(occasion._id)}
+                  onChange={(e) => toggleOccasion(occasion._id, e.target.checked)}
+                  className={checkboxClass}
+                />
+                {occasion.name}
+                {occasion.status === 'inactive' ? ' (Inactive)' : ''}
+              </label>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No occasions available. Add occasions first.</p>
+          )}
+        </div>
+      </fieldset>
+
+      <div>
+        <label className={labelClass}>Description</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className={inputClass}
+          rows={3}
+          placeholder="Product description"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div>
+          <label className={labelClass}>Price (₹)</label>
+          <input
+            type="number"
+            value={formData.price}
+            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            className={inputClass}
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Original Price (₹)</label>
+          <input
+            type="number"
+            value={formData.originalPrice}
+            onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) || 0 })}
+            className={inputClass}
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Deposit (₹)</label>
+          <input
+            type="number"
+            value={formData.deposit}
+            onChange={(e) => setFormData({ ...formData, deposit: parseFloat(e.target.value) || 0 })}
+            className={inputClass}
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Rental Duration (days)</label>
+          <input
+            type="number"
+            value={formData.rentalDuration}
+            onChange={(e) => setFormData({ ...formData, rentalDuration: parseInt(e.target.value) || 1 })}
+            className={inputClass}
+            placeholder="1"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>Color</label>
+          <input
+            type="text"
+            value={formData.color}
+            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+            className={inputClass}
+            placeholder="Red"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Condition</label>
+          <select
+            value={formData.condition}
+            onChange={(e) =>
+              setFormData({ ...formData, condition: e.target.value as NonNullable<Product['condition']> })
+            }
+            className={inputClass}
+          >
+            <option value="Excellent">Excellent</option>
+            <option value="Very Good">Very Good</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Sizes</label>
+        {formData.sizes.map((sizeItem, index) => (
+          <div key={index} className="mt-2 grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-3 sm:grid-cols-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Size</label>
+              <select
+                value={sizeItem.size}
+                onChange={(e) => updateSizeField(index, 'size', e.target.value)}
+                className={inputClass}
+              >
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="Free Size">Free Size</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Quantity</label>
+              <input
+                type="number"
+                value={sizeItem.quantity}
+                onChange={(e) => updateSizeField(index, 'quantity', parseInt(e.target.value) || 1)}
+                className={inputClass}
+                min="1"
+              />
+            </div>
+            <div className="flex items-end">
+              <label className="flex items-center gap-2 pb-2">
+                <input
+                  type="checkbox"
+                  checked={sizeItem.isAvailable}
+                  onChange={(e) => updateSizeField(index, 'isAvailable', e.target.checked)}
+                  className={checkboxClass}
+                />
+                <span className="text-xs text-gray-700">Available</span>
+              </label>
+            </div>
+            {formData.sizes.length > 1 && (
+              <div className="flex items-end pb-1">
+                <button
+                  type="button"
+                  onClick={() => removeSizeField(index)}
+                  className="text-sm font-medium text-red-600 hover:text-red-800"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addSizeField}
+          className="mt-2 text-sm font-medium text-[#b87570] hover:text-[#633b3b]"
+        >
+          + Add Size
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>Brand</label>
+          <input
+            type="text"
+            value={formData.brand}
+            onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+            className={inputClass}
+            placeholder="Brand name"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Material</label>
+          <input
+            type="text"
+            value={formData.material}
+            onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+            className={inputClass}
+            placeholder="Cotton, Silk, etc."
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Care Instructions</label>
+        <textarea
+          value={formData.careInstructions}
+          onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
+          className={inputClass}
+          rows={2}
+          placeholder="Care instructions"
+        />
+      </div>
+
+      <div>
+        <label className={labelClass}>Images</label>
+        <MultiImageUpload
+          value={formData.images}
+          onChange={(images) => setFormData({ ...formData, images })}
+          maxImages={5}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass}>Tags</label>
+        {formData.tags.map((tag, index) => (
+          <div key={index} className="mt-1 flex space-x-2">
+            <input
+              type="text"
+              value={tag}
+              onChange={(e) => updateTagField(index, e.target.value)}
+              className={inputClass}
+              placeholder="Tag name"
+            />
+            {formData.tags.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeTagField(index)}
+                className="rounded-lg px-3 text-red-600 hover:bg-red-50"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addTagField}
+          className="mt-2 text-sm font-medium text-[#b87570] hover:text-[#633b3b]"
+        >
+          + Add Tag
+        </button>
+      </div>
+
+      <div className="flex items-center gap-6 rounded-lg bg-gray-50 p-3">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={formData.isFeatured}
+            onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+            className={checkboxClass}
+          />
+          Featured Product
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={formData.isAvailable}
+            onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+            className={checkboxClass}
+          />
+          Available
+        </label>
+      </div>
+    </div>
+  );
+}
 
 function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -36,28 +461,9 @@ function ProductsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    categories: [] as string[],
-    occasions: [] as string[],
-    Owner: '',
-    images: [''],
-    price: 0,
-    originalPrice: 0,
-    deposit: 0,
-    sizes: [{ size: 'M' as ProductSize["size"], isAvailable: true, quantity: 1 }],
-    color: '',
-    rentalDuration: 1,
-    condition: 'Good' as Product["condition"],
-    brand: '',
-    material: '',
-    tags: [''],
-    careInstructions: '',
-    isFeatured: false,
-    isAvailable: true
-  });
+  const [formData, setFormData] = useState<ProductFormState>(createEmptyForm());
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -113,41 +519,39 @@ function ProductsPage() {
     fetchOccasions();
   }, [fetchProducts, fetchCategories, fetchMerchants, fetchOccasions]);
 
+  const buildPayload = () => ({
+    ...formData,
+    images: formData.images.filter((img) => img.trim() !== ''),
+    tags: formData.tags.filter((tag) => tag.trim() !== ''),
+  });
+
   const handleAddProduct = async () => {
+    if (isCreatingProduct) return;
+    setIsCreatingProduct(true);
     try {
-      const productData = {
-        ...formData,
-        images: formData.images.filter(img => img.trim() !== ''),
-        tags: formData.tags.filter(tag => tag.trim() !== '')
-      };
-      
-      await apiService.createProduct(productData);
+      await apiService.createProduct(buildPayload());
       toast.success('Product created successfully');
       setShowAddModal(false);
-      resetForm();
+      setFormData(createEmptyForm());
       fetchProducts();
     } catch (error: unknown) {
       console.error('Error creating product:', error);
       toast.error(getProductErrorMessage(error, 'Failed to create product'));
+    } finally {
+      setIsCreatingProduct(false);
     }
   };
 
   const handleEditProduct = async () => {
     if (!selectedProduct || isUpdatingProduct) return;
-    
+
     setIsUpdatingProduct(true);
     try {
-      const productData = {
-        ...formData,
-        images: formData.images.filter(img => img.trim() !== ''),
-        tags: formData.tags.filter(tag => tag.trim() !== '')
-      };
-      
-      await apiService.updateProduct(selectedProduct._id, productData);
+      await apiService.updateProduct(selectedProduct._id, buildPayload());
       toast.success('Product updated successfully');
       setShowEditModal(false);
       setSelectedProduct(null);
-      resetForm();
+      setFormData(createEmptyForm());
       fetchProducts();
     } catch (error: unknown) {
       console.error('Error updating product:', error);
@@ -172,26 +576,20 @@ function ProductsPage() {
 
   const openEditModal = (product: Product) => {
     setSelectedProduct(product);
-    
-    // Safely extract category IDs, filtering out null/undefined values
+
     let categoryIds: string[] = [];
     if (product.categories && product.categories.length > 0) {
-      categoryIds = product.categories
-        .filter(cat => cat && cat._id) // Filter out null/undefined categories
-        .map(cat => cat._id);
+      categoryIds = product.categories.filter((cat) => cat && cat._id).map((cat) => cat._id);
     }
-    
-    // If no valid categories found, use the single category
     if (categoryIds.length === 0 && product.category && product.category._id) {
       categoryIds = [product.category._id];
     }
-    
+
     setFormData({
       name: product.name,
       description: product.description,
       categories: categoryIds,
-      occasions: product.occasions?.map((occasion) => occasion._id) ??
-        (product.occasion ? [product.occasion._id] : []),
+      occasions: product.occasions?.map((occasion) => occasion._id) ?? (product.occasion ? [product.occasion._id] : []),
       Owner: product.Owner?._id || '',
       images: product.images.filter((image) => image.trim().length > 0),
       price: product.price || 0,
@@ -200,694 +598,315 @@ function ProductsPage() {
       sizes: product.sizes.length > 0 ? product.sizes : [{ size: 'M', isAvailable: true, quantity: 1 }],
       color: product.color || '',
       rentalDuration: product.rentalDuration || 0,
-      condition: product.condition,
+      condition: product.condition ?? 'Good',
       brand: product.brand || '',
       material: product.material || '',
       tags: product.tags.length > 0 ? product.tags : [''],
       careInstructions: product.careInstructions || '',
       isFeatured: product.isFeatured,
-      isAvailable: product.isAvailable
+      isAvailable: product.isAvailable,
     });
     setShowEditModal(true);
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      categories: [],
-      occasions: [],
-      Owner: '',
-      images: [''],
-      price: 0,
-      originalPrice: 0,
-      deposit: 0,
-      sizes: [{ size: 'M', isAvailable: true, quantity: 1 }],
-      color: '',
-      rentalDuration: 1,
-      condition: 'Good',
-      brand: '',
-      material: '',
-      tags: [''],
-      careInstructions: '',
-      isFeatured: false,
-      isAvailable: true
-    });
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('');
+    setCurrentPage(1);
   };
 
-
-
-  const addTagField = () => {
-    setFormData({ ...formData, tags: [...formData.tags, ''] });
-  };
-
-  const removeTagField = (index: number) => {
-    const newTags = formData.tags.filter((_, i) => i !== index);
-    setFormData({ ...formData, tags: newTags });
-  };
-
-  const updateTagField = (index: number, value: string) => {
-    const newTags = [...formData.tags];
-    newTags[index] = value;
-    setFormData({ ...formData, tags: newTags });
-  };
-
-  const addSizeField = () => {
-    setFormData({ 
-      ...formData, 
-      sizes: [...formData.sizes, { size: 'M', isAvailable: true, quantity: 1 }] 
-    });
-  };
-
-  const removeSizeField = (index: number) => {
-    const newSizes = formData.sizes.filter((_, i) => i !== index);
-    setFormData({ ...formData, sizes: newSizes });
-  };
-
-  const updateSizeField = (index: number, field: keyof ProductSize, value: string | number | boolean) => {
-    const newSizes = [...formData.sizes];
-    newSizes[index] = { ...newSizes[index], [field]: value };
-    setFormData({ ...formData, sizes: newSizes });
-  };
-
-  // formatDate function removed as it's not being used
+  const hasFilters = Boolean(searchTerm || selectedCategory);
+  const categoryLabel = (product: Product) =>
+    product.categories && product.categories.length > 0
+      ? product.categories.map((cat) => cat.name).join(', ')
+      : product.category?.name || 'Uncategorized';
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+      <div className="space-y-6">
+        <div className="h-20 animate-pulse rounded-2xl border border-gray-100 bg-white" />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-72 animate-pulse rounded-2xl border border-gray-100 bg-white" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage clothing products
+            Manage your rental catalog · {totalProducts.toLocaleString('en-IN')} product{totalProducts === 1 ? '' : 's'}
           </p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        <button
+          onClick={() => {
+            setFormData(createEmptyForm());
+            setShowAddModal(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-[#b87570] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f]"
         >
-          <PlusIcon className="h-4 w-4 mr-2" />
+          <PlusIcon className="h-4 w-4" />
           Add Product
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Products</h3>
-          </div>
-          <div className="flex gap-2">
-            {(searchTerm || selectedCategory) && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('');
-                  setCurrentPage(1);
-                }}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Clear Filters
-              </button>
-            )}
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('');
-                setCurrentPage(1);
-              }}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              Show All Products
-            </button>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700">
-              Search Products
-            </label>
-            <div className="mt-1 relative">
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1 sm:max-w-xs">
+              <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                id="search"
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="block w-full pr-10 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                 placeholder="Search by name..."
               />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-              Filter by Category
-            </label>
-            <select
-              id="category"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="mt-1 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-end">
-            <div className="w-full bg-gray-50 rounded-md p-3 border border-gray-200">
-              <p className="text-xs text-gray-500 mb-1">Products Count</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {totalProducts > 0 ? (
-                  <>
-                    {products.length} of {totalProducts} {searchTerm || selectedCategory ? 'filtered' : 'total'}
-                  </>
-                ) : (
-                  '0'
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-        {(searchTerm || selectedCategory) && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600">
-              <span className="font-medium">Active filters:</span>
-              {searchTerm && (
-                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                  Search: {searchTerm}
-                </span>
-              )}
-              {selectedCategory && (
-                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                  Category: {categories.find(c => c._id === selectedCategory)?.name || 'Unknown'}
-                </span>
-              )}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Products Grid */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        {products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">
-              {searchTerm || selectedCategory 
-                ? 'No products found matching your filters.' 
-                : 'No products found. Create one to get started.'}
-            </p>
-            {(searchTerm || selectedCategory) && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('');
+            <div className="flex items-center gap-2">
+              <FunnelIcon className="h-4 w-4 text-[#b87570]" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="rounded-xl border border-gray-200 py-2.5 pl-3 pr-8 text-sm text-gray-700 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
               >
-                Clear Filters and Show All
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-[#633b3b] transition-colors hover:bg-[#f7ede8]"
+              >
+                <XMarkIcon className="h-4 w-4" /> Clear
               </button>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-6">
-            {products.map((product) => (
-            <div key={product._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-w-1 aspect-h-1 w-full">
-                <Image 
-                  className="w-full h-48 object-cover" 
-                  src={product.images[0] || 'https://via.placeholder.com/300x300?text=No+Image'} 
-                  alt={product.name}
-                  width={300}
-                  height={300}
-                  onError={() => {
-                    // Fallback handled by src prop
-                  }}
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {product.categories && product.categories.length > 0 
-                    ? product.categories.map(cat => cat.name).join(', ')
-                    : product.category.name
-                  }
-                </p>
-                <div className="mt-2 flex items-center justify-between">
-                  <div>
-                    <span className="text-lg font-semibold text-gray-900">${product.price}</span>
-                    {product.deposit && product.deposit > 0 && (
-                      <span className="text-sm text-gray-600 ml-2">+ ${product.deposit} deposit</span>
+          <div className="text-sm text-gray-500">
+            Showing <span className="font-semibold text-gray-900">{products.length}</span> of{' '}
+            <span className="font-semibold text-gray-900">{totalProducts.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Products grid */}
+      {products.length === 0 ? (
+        <div className="rounded-2xl border border-gray-100 bg-white py-16 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f7ede8] text-[#b87570]">
+            <PhotoIcon className="h-7 w-7" />
+          </div>
+          <p className="mt-4 text-lg font-medium text-gray-900">
+            {hasFilters ? 'No products match your filters' : 'No products yet'}
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            {hasFilters ? 'Try adjusting your search or category filter.' : 'Create your first product to get started.'}
+          </p>
+          {hasFilters ? (
+            <button
+              onClick={clearFilters}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#633b3b] px-4 py-2 text-sm font-medium text-white hover:bg-[#4e2f2f]"
+            >
+              Clear filters
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#b87570] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a5655f]"
+            >
+              <PlusIcon className="h-4 w-4" /> Add Product
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {products.map((product) => {
+            const sizes = product.sizes?.map((s) => s.size).filter(Boolean) ?? [];
+            return (
+              <div
+                key={product._id}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-gray-200/60"
+              >
+                <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+                  {product.images?.[0] ? (
+                    <Image
+                      src={product.images[0]}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-[#f7ede8] text-[#b87570]">
+                      <PhotoIcon className="h-10 w-10" />
+                    </div>
+                  )}
+
+                  <div className="absolute left-3 top-3 flex gap-2">
+                    {product.isFeatured && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-amber-600 shadow-sm">
+                        <StarIcon className="h-3.5 w-3.5" /> Featured
+                      </span>
+                    )}
+                    {product.isHighlighted && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[#b87570] shadow-sm">
+                        <SparklesIcon className="h-3.5 w-3.5" /> Highlight
+                      </span>
                     )}
                   </div>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    product.isAvailable 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span
+                    className={`absolute right-3 top-3 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ${
+                      product.isAvailable ? 'bg-emerald-500/95 text-white' : 'bg-red-500/95 text-white'
+                    }`}
+                  >
                     {product.isAvailable ? 'Available' : 'Unavailable'}
                   </span>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
-                  <span>Sizes: {product.sizes.map(s => s.size).join(', ')}</span>
-                  <span>Color: {product.color}</span>
-                </div>
-                {product.Owner && (
-                  <div className="mt-1 text-sm text-gray-500">
-                    <span>Merchant: {product.Owner.name}</span>
-                  </div>
-                )}
-                <div className="mt-3 flex justify-between">
-                  <button 
-                    onClick={() => openEditModal(product)}
-                    className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteProduct(product._id)}
-                    className="text-red-600 hover:text-red-900 text-sm font-medium"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-          </div>
-        )}
 
-        {/* Pagination */}
-        {products.length > 0 && totalPages > 1 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing page <span className="font-medium">{currentPage}</span> of{' '}
-                  <span className="font-medium">{totalPages}</span>
-                </p>
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="truncate text-sm font-semibold text-gray-900" title={product.name}>
+                    {product.name}
+                  </h3>
+                  <p className="mt-0.5 truncate text-xs text-gray-500" title={categoryLabel(product)}>
+                    {categoryLabel(product)}
+                  </p>
+
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className="text-lg font-bold text-gray-900">{inr(product.price || 0)}</span>
+                    {product.originalPrice > (product.price || 0) && (
+                      <span className="text-sm text-gray-400 line-through">{inr(product.originalPrice)}</span>
+                    )}
+                  </div>
+                  {product.deposit && product.deposit > 0 ? (
+                    <p className="mt-0.5 text-xs text-gray-500">+ {inr(product.deposit)} deposit</p>
+                  ) : null}
+
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    {sizes.slice(0, 5).map((size) => (
+                      <span
+                        key={size}
+                        className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600"
+                      >
+                        {size}
+                      </span>
+                    ))}
+                    {product.color && (
+                      <span className="rounded-md bg-[#f7ede8] px-2 py-0.5 text-[11px] font-medium text-[#633b3b]">
+                        {product.color}
+                      </span>
+                    )}
+                  </div>
+
+                  {product.Owner?.name && (
+                    <p className="mt-2 truncate text-xs text-gray-400">Merchant: {product.Owner.name}</p>
+                  )}
+
+                  <div className="mt-auto flex items-center gap-2 pt-4">
+                    <button
+                      onClick={() => openEditModal(product)}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-[#633b3b] transition-colors hover:border-[#b87570] hover:bg-[#f7ede8]"
+                    >
+                      <PencilSquareIcon className="h-4 w-4" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product._id)}
+                      className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-red-600 transition-colors hover:border-red-200 hover:bg-red-50"
+                      aria-label={`Delete ${product.name}`}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </nav>
-              </div>
-            </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {products.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm sm:px-6">
+          <p className="text-sm text-gray-600">
+            Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
+            <span className="font-semibold text-gray-900">{totalPages}</span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Add Product Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Product</h3>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Product name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Merchant</label>
-                    <select
-                      value={formData.Owner}
-                      onChange={(e) => setFormData({ ...formData, Owner: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="">Select Merchant (Optional)</option>
-                      {merchants.map((merchant) => (
-                        <option key={merchant._id} value={merchant._id}>
-                          {merchant.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Categories</label>
-                  <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
-                    {categories.map((category) => (
-                      <label key={category._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.categories.includes(category._id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                categories: [...formData.categories, category._id]
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                categories: formData.categories.filter(id => id !== category._id)
-                              });
-                            }
-                          }}
-                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{category.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {formData.categories.length === 0 && (
-                    <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
-                  )}
-                </div>
-
-                <fieldset>
-                  <legend className="block text-sm font-medium text-gray-700">Occasions (optional)</legend>
-                  <div className="mt-1 grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-md border border-gray-300 p-3 sm:grid-cols-2">
-                    {occasions.length > 0 ? occasions.map((occasion) => (
-                      <label key={occasion._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.occasions.includes(occasion._id)}
-                          onChange={(event) => setFormData({
-                            ...formData,
-                            occasions: event.target.checked
-                              ? [...formData.occasions, occasion._id]
-                              : formData.occasions.filter((id) => id !== occasion._id)
-                          })}
-                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">
-                          {occasion.name}{occasion.status === 'inactive' ? ' (Inactive)' : ''}
-                        </span>
-                      </label>
-                    )) : (
-                      <p className="text-sm text-gray-500">No occasions available. Add occasions first.</p>
-                    )}
-                  </div>
-                </fieldset>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    rows={3}
-                    placeholder="Product description"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Price</label>
-                    <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Original Price</label>
-                    <input
-                      type="number"
-                      value={formData.originalPrice}
-                      onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Deposit</label>
-                    <input
-                      type="number"
-                      value={formData.deposit}
-                      onChange={(e) => setFormData({ ...formData, deposit: parseFloat(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Rental Duration (days)</label>
-                    <input
-                      type="number"
-                      value={formData.rentalDuration}
-                      onChange={(e) => setFormData({ ...formData, rentalDuration: parseInt(e.target.value) || 1 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="1"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Color</label>
-                    <input
-                      type="text"
-                      value={formData.color}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Red"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Condition</label>
-                    <select
-                      value={formData.condition}
-                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as 'Excellent' | 'Very Good' | 'Good' | 'Fair' })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="Excellent">Excellent</option>
-                      <option value="Very Good">Very Good</option>
-                      <option value="Good">Good</option>
-                      <option value="Fair">Fair</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Sizes</label>
-                  {formData.sizes.map((sizeItem, index) => (
-                    <div key={index} className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-4 border border-gray-200 rounded-md p-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700">Size</label>
-                        <select
-                          value={sizeItem.size}
-                          onChange={(e) => updateSizeField(index, 'size', e.target.value)}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        >
-                          <option value="XS">XS</option>
-                          <option value="S">S</option>
-                          <option value="M">M</option>
-                          <option value="L">L</option>
-                          <option value="XL">XL</option>
-                          <option value="XXL">XXL</option>
-                          <option value="Free Size">Free Size</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700">Quantity</label>
-                        <input
-                          type="number"
-                          value={sizeItem.quantity}
-                          onChange={(e) => updateSizeField(index, 'quantity', parseInt(e.target.value) || 1)}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          min="1"
-                        />
-                      </div>
-                      <div className="flex items-center">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={sizeItem.isAvailable}
-                            onChange={(e) => updateSizeField(index, 'isAvailable', e.target.checked)}
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                          />
-                          <span className="ml-2 text-xs text-gray-700">Available</span>
-                        </label>
-                      </div>
-                      {formData.sizes.length > 1 && (
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => removeSizeField(index)}
-                            className="text-red-600 hover:text-red-900 text-sm"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    onClick={addSizeField}
-                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-900"
-                  >
-                    + Add Size
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Brand</label>
-                    <input
-                      type="text"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Brand name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Material</label>
-                    <input
-                      type="text"
-                      value={formData.material}
-                      onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Cotton, Silk, etc."
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Care Instructions</label>
-                  <textarea
-                    value={formData.careInstructions}
-                    onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    rows={2}
-                    placeholder="Care instructions"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Images</label>
-                  <MultiImageUpload
-                    value={formData.images}
-                    onChange={(images) => setFormData({ ...formData, images })}
-                    maxImages={5}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Tags</label>
-                  {formData.tags.map((tag, index) => (
-                    <div key={index} className="mt-1 flex space-x-2">
-                      <input
-                        type="text"
-                        value={tag}
-                        onChange={(e) => updateTagField(index, e.target.value)}
-                        className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="Tag name"
-                      />
-                      {formData.tags.length > 1 && (
-                        <button
-                          onClick={() => removeTagField(index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-900"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    onClick={addTagField}
-                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-900"
-                  >
-                    + Add Tag
-                  </button>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.isFeatured}
-                      onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                      className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Featured Product</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.isAvailable}
-                      onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
-                      className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Available</span>
-                  </label>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddProduct}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
-                >
-                  Add Product
-                </button>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+          <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Add New Product</h3>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                aria-label="Close"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+              <ProductForm
+                formData={formData}
+                setFormData={setFormData}
+                categories={categories}
+                merchants={merchants}
+                occasions={occasions}
+              />
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4">
+              <button
+                onClick={() => setShowAddModal(false)}
+                disabled={isCreatingProduct}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddProduct}
+                disabled={isCreatingProduct}
+                className="inline-flex min-w-36 items-center justify-center gap-2 rounded-lg bg-[#b87570] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a5655f] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCreatingProduct && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                )}
+                {isCreatingProduct ? 'Creating...' : 'Add Product'}
+              </button>
             </div>
           </div>
         </div>
@@ -896,349 +915,44 @@ function ProductsPage() {
       {/* Edit Product Modal */}
       {showEditModal && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
-          <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            <div className="flex min-h-0 flex-1 flex-col">
-              <h3 className="border-b border-gray-200 px-6 py-4 text-lg font-semibold text-gray-900">Edit Product</h3>
-              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Product name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Merchant</label>
-                    <select
-                      value={formData.Owner}
-                      onChange={(e) => setFormData({ ...formData, Owner: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="">Select Merchant (Optional)</option>
-                      {merchants.map((merchant) => (
-                        <option key={merchant._id} value={merchant._id}>
-                          {merchant.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Categories</label>
-                  <div className="mt-1 space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
-                    {categories.map((category) => (
-                      <label key={category._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.categories.includes(category._id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                categories: [...formData.categories, category._id]
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                categories: formData.categories.filter(id => id !== category._id)
-                              });
-                            }
-                          }}
-                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{category.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {formData.categories.length === 0 && (
-                    <p className="mt-1 text-sm text-red-600">Please select at least one category</p>
-                  )}
-                </div>
-
-                <fieldset>
-                  <legend className="block text-sm font-medium text-gray-700">Occasions (optional)</legend>
-                  <div className="mt-1 grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-md border border-gray-300 p-3 sm:grid-cols-2">
-                    {occasions.length > 0 ? occasions.map((occasion) => (
-                      <label key={occasion._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.occasions.includes(occasion._id)}
-                          onChange={(event) => setFormData({
-                            ...formData,
-                            occasions: event.target.checked
-                              ? [...formData.occasions, occasion._id]
-                              : formData.occasions.filter((id) => id !== occasion._id)
-                          })}
-                          className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">
-                          {occasion.name}{occasion.status === 'inactive' ? ' (Inactive)' : ''}
-                        </span>
-                      </label>
-                    )) : (
-                      <p className="text-sm text-gray-500">No occasions available. Add occasions first.</p>
-                    )}
-                  </div>
-                </fieldset>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    rows={3}
-                    placeholder="Product description"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Price</label>
-                    <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Original Price</label>
-                    <input
-                      type="number"
-                      value={formData.originalPrice}
-                      onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Deposit</label>
-                    <input
-                      type="number"
-                      value={formData.deposit}
-                      onChange={(e) => setFormData({ ...formData, deposit: parseFloat(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Rental Duration (days)</label>
-                    <input
-                      type="number"
-                      value={formData.rentalDuration}
-                      onChange={(e) => setFormData({ ...formData, rentalDuration: parseInt(e.target.value) || 1 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="1"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Color</label>
-                    <input
-                      type="text"
-                      value={formData.color}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Red"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Condition</label>
-                    <select
-                      value={formData.condition}
-                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as 'Excellent' | 'Very Good' | 'Good' | 'Fair' })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="Excellent">Excellent</option>
-                      <option value="Very Good">Very Good</option>
-                      <option value="Good">Good</option>
-                      <option value="Fair">Fair</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Sizes</label>
-                  {formData.sizes.map((sizeItem, index) => (
-                    <div key={index} className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-4 border border-gray-200 rounded-md p-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700">Size</label>
-                        <select
-                          value={sizeItem.size}
-                          onChange={(e) => updateSizeField(index, 'size', e.target.value)}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        >
-                          <option value="XS">XS</option>
-                          <option value="S">S</option>
-                          <option value="M">M</option>
-                          <option value="L">L</option>
-                          <option value="XL">XL</option>
-                          <option value="XXL">XXL</option>
-                          <option value="Free Size">Free Size</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700">Quantity</label>
-                        <input
-                          type="number"
-                          value={sizeItem.quantity}
-                          onChange={(e) => updateSizeField(index, 'quantity', parseInt(e.target.value) || 1)}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          min="1"
-                        />
-                      </div>
-                      <div className="flex items-center">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={sizeItem.isAvailable}
-                            onChange={(e) => updateSizeField(index, 'isAvailable', e.target.checked)}
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                          />
-                          <span className="ml-2 text-xs text-gray-700">Available</span>
-                        </label>
-                      </div>
-                      {formData.sizes.length > 1 && (
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => removeSizeField(index)}
-                            className="text-red-600 hover:text-red-900 text-sm"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    onClick={addSizeField}
-                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-900"
-                  >
-                    + Add Size
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Brand</label>
-                    <input
-                      type="text"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Brand name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Material</label>
-                    <input
-                      type="text"
-                      value={formData.material}
-                      onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Cotton, Silk, etc."
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Care Instructions</label>
-                  <textarea
-                    value={formData.careInstructions}
-                    onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    rows={2}
-                    placeholder="Care instructions"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Images</label>
-                  <MultiImageUpload
-                    value={formData.images}
-                    onChange={(images) => setFormData({ ...formData, images })}
-                    maxImages={5}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Tags</label>
-                  {formData.tags.map((tag, index) => (
-                    <div key={index} className="mt-1 flex space-x-2">
-                      <input
-                        type="text"
-                        value={tag}
-                        onChange={(e) => updateTagField(index, e.target.value)}
-                        className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="Tag name"
-                      />
-                      {formData.tags.length > 1 && (
-                        <button
-                          onClick={() => removeTagField(index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-900"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    onClick={addTagField}
-                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-900"
-                  >
-                    + Add Tag
-                  </button>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.isFeatured}
-                      onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                      className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Featured Product</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.isAvailable}
-                      onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
-                      className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Available</span>
-                  </label>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 border-t border-gray-200 bg-white px-6 py-4">
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  disabled={isUpdatingProduct}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditProduct}
-                  disabled={isUpdatingProduct}
-                  className="inline-flex min-w-36 items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isUpdatingProduct && (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  )}
-                  {isUpdatingProduct ? 'Updating...' : 'Update Product'}
-                </button>
-              </div>
+          <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Product</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                aria-label="Close"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+              <ProductForm
+                formData={formData}
+                setFormData={setFormData}
+                categories={categories}
+                merchants={merchants}
+                occasions={occasions}
+              />
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                disabled={isUpdatingProduct}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditProduct}
+                disabled={isUpdatingProduct}
+                className="inline-flex min-w-36 items-center justify-center gap-2 rounded-lg bg-[#b87570] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a5655f] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isUpdatingProduct && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                )}
+                {isUpdatingProduct ? 'Updating...' : 'Update Product'}
+              </button>
             </div>
           </div>
         </div>
@@ -1253,4 +967,4 @@ export default function ProductsPageWrapper() {
       <ProductsPage />
     </ProtectedRoute>
   );
-} 
+}

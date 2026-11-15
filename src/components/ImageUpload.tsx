@@ -100,14 +100,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Upload Mode Toggle */}
-      <div className="flex space-x-2">
+      <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1">
         <button
           type="button"
           onClick={() => setUploadMode('url')}
-          className={`px-3 py-1 text-sm rounded-md transition-colors ${
+          className={`${
             uploadMode === 'url'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition-colors'
+              : 'rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100'
           }`}
         >
           URL
@@ -115,10 +115,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         <button
           type="button"
           onClick={() => setUploadMode('file')}
-          className={`px-3 py-1 text-sm rounded-md transition-colors ${
+          className={`${
             uploadMode === 'file'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition-colors'
+              : 'rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100'
           }`}
         >
           Upload File
@@ -132,7 +132,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             type="url"
             value={value}
             onChange={(e) => handleUrlChange(e.target.value)}
-            className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             placeholder={placeholder}
           />
         </div>
@@ -142,10 +142,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       {uploadMode === 'file' && (
         <div className="space-y-2">
           <div className="flex items-center justify-center w-full">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 {isUploading ? (
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                 ) : (
                   <PhotoIcon className="w-8 h-8 mb-2 text-gray-400" />
                 )}
@@ -170,7 +170,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       {/* Image Preview */}
       {getDisplayUrl() && (
         <div className="relative">
-          <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-48 bg-gray-100 rounded-xl overflow-hidden">
             {!imageError ? (
               <Image
                 src={getDisplayUrl()}

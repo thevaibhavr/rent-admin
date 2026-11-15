@@ -26,28 +26,119 @@ interface ClothsLayoutProps {
   children: React.ReactNode;
 }
 
-const clothsNavigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Users', href: '/users', icon: UsersIcon },
-  { name: 'Customers', href: '/customers', icon: UserCircleIcon },
-  { name: 'Visitor Details', href: '/visitor-profiles', icon: UserPlusIcon },
-  { name: 'Products', href: '/products', icon: ShoppingBagIcon },
-  { name: 'User Analytics', href: '/analytics', icon: ChartBarIcon },
-  { name: 'Categories', href: '/categories', icon: TagIcon },
-  { name: 'Occasions', href: '/occasions', icon: SparklesIcon },
-  { name: 'Merchants', href: '/merchants', icon: BuildingStorefrontIcon },
-  { name: 'Orders', href: '/orders', icon: ShoppingCartIcon },
+const clothsNavigationGroups = [
   {
-    name: 'Bookings',
-    href: '/bookings',
-    icon: CalendarIcon,
-    children: [
-      { name: 'View Bookings', href: '/bookings/view' },
-      { name: 'Create Booking', href: '/bookings/add' },
+    name: 'Overview',
+    items: [{ name: 'Dashboard', href: '/', icon: HomeIcon }],
+  },
+  {
+    name: 'Catalog',
+    items: [
+      { name: 'Products', href: '/products', icon: ShoppingBagIcon },
+      { name: 'Categories', href: '/categories', icon: TagIcon },
+      { name: 'Occasions', href: '/occasions', icon: SparklesIcon },
+      { name: 'Merchants', href: '/merchants', icon: BuildingStorefrontIcon },
+      { name: 'Highlighted', href: '/highlighted', icon: StarIcon },
     ],
   },
-  { name: 'Highlighted', href: '/highlighted', icon: StarIcon },
+  {
+    name: 'People',
+    items: [
+      { name: 'Users', href: '/users', icon: UsersIcon },
+      { name: 'Customers', href: '/customers', icon: UserCircleIcon },
+      { name: 'Visitor Details', href: '/visitor-profiles', icon: UserPlusIcon },
+    ],
+  },
+  {
+    name: 'Operations',
+    items: [
+      { name: 'Orders', href: '/orders', icon: ShoppingCartIcon },
+      {
+        name: 'Bookings',
+        href: '/bookings',
+        icon: CalendarIcon,
+        children: [
+          { name: 'View Bookings', href: '/bookings/view' },
+          { name: 'Create Booking', href: '/bookings/add' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Insights',
+    items: [{ name: 'User Analytics', href: '/analytics', icon: ChartBarIcon }],
+  },
 ];
+
+function SidebarNavigation({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav aria-label="Main navigation" className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+      {clothsNavigationGroups.map((group) => (
+        <div key={group.name}>
+          <h2 className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
+            {group.name}
+          </h2>
+          <div className="space-y-1">
+            {group.items.map((item) => {
+              const isActive = pathname === item.href || Boolean(item.children?.some((child) => pathname === child.href));
+              return (
+                <div key={item.name}>
+                  <Link
+                    href={item.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    onClick={onNavigate}
+                    className={`group relative flex min-h-10 items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#f7ede8] text-[#633b3b] shadow-sm'
+                        : 'text-white/70 hover:bg-white/[0.08] hover:text-white'
+                    }`}
+                  >
+                    {isActive && <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-[#b87570]" />}
+                    <item.icon
+                      className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${
+                        isActive ? 'text-[#9b6261]' : 'text-white/45 group-hover:text-white/80'
+                      }`}
+                    />
+                    <span className="flex-1">{item.name}</span>
+                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#b87570]" />}
+                  </Link>
+                  {item.children && (
+                    <div className="ml-5 mt-1 space-y-1 border-l border-white/10 pl-4">
+                      {item.children.map((child) => {
+                        const isChildActive = pathname === child.href;
+                        return (
+                          <Link
+                            key={child.name}
+                            href={child.href}
+                            aria-current={isChildActive ? 'page' : undefined}
+                            onClick={onNavigate}
+                            className={`block rounded-lg px-3 py-2 text-[13px] transition-colors ${
+                              isChildActive
+                                ? 'bg-white/10 font-medium text-white'
+                                : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
+                            }`}
+                          >
+                            {child.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
 
 export default function ClothsLayout({ children }: ClothsLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,7 +161,7 @@ export default function ClothsLayout({ children }: ClothsLayoutProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-[#b87570]"></div>
       </div>
     );
   }
@@ -83,121 +174,66 @@ export default function ClothsLayout({ children }: ClothsLayoutProps) {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
-          <div className="flex h-16 items-center justify-between px-4 bg-indigo-600">
-            <h1 className="text-xl font-bold text-white">Cloths Admin</h1>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-gradient-to-b from-[#302628] to-[#211b1d] shadow-2xl">
+          <div className="flex h-[76px] items-center justify-between border-b border-white/10 px-5">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#b87570] text-white shadow-lg shadow-black/20">
+                <SparklesIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <h1 className="text-sm font-semibold tracking-wide text-white">RentTheMoment</h1>
+                <p className="mt-0.5 text-[11px] text-white/50">Clothing admin</p>
+              </div>
+            </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="text-white hover:text-gray-200"
+              aria-label="Close navigation menu"
+              className="rounded-lg p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
             >
-              <XMarkIcon className="h-6 w-6" />
+              <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
-            {clothsNavigation.map((item) => {
-              const isActive = pathname === item.href || (item.children?.some(child => pathname === child.href));
-              const isChildActive = (href: string) => pathname === href;
-              return (
-                <div key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      isActive
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    {item.icon && (
-                      <item.icon
-                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                          isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
-                      />
-                    )}
-                    {item.name}
-                  </Link>
-                  {item.children && (
-                    <div className="ml-8 mt-1 space-y-1">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          className={`group flex items-center px-2 py-1.5 text-sm font-medium rounded-md ${
-                            isChildActive(child.href)
-                              ? 'text-indigo-700 bg-indigo-50'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
+          <SidebarNavigation pathname={pathname} onNavigate={() => setSidebarOpen(false)} />
+          <div className="border-t border-white/10 p-4">
+            <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-3">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
+              <div>
+                <p className="text-xs font-medium text-white/80">Workspace active</p>
+                <p className="mt-0.5 text-[10px] text-white/40">Clothing rentals</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
-          <div className="flex h-16 items-center px-4 bg-indigo-600">
-            <h1 className="text-xl font-bold text-white">Cloths Admin</h1>
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
+        <div className="flex flex-1 flex-col border-r border-white/10 bg-gradient-to-b from-[#302628] to-[#211b1d]">
+          <div className="flex h-[76px] items-center gap-3 border-b border-white/10 px-5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#b87570] text-white shadow-lg shadow-black/20">
+              <SparklesIcon className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-sm font-semibold tracking-wide text-white">RentTheMoment</h1>
+              <p className="mt-0.5 text-[11px] text-white/50">Clothing admin</p>
+            </div>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
-            {clothsNavigation.map((item) => {
-              const isActive = pathname === item.href || (item.children?.some(child => pathname === child.href));
-              const isChildActive = (href: string) => pathname === href;
-              return (
-                <div key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      isActive
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    {item.icon && (
-                      <item.icon
-                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                          isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
-                      />
-                    )}
-                    {item.name}
-                  </Link>
-                  {item.children && (
-                    <div className="ml-8 mt-1 space-y-1">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          className={`group flex items-center px-2 py-1.5 text-sm font-medium rounded-md ${
-                            isChildActive(child.href)
-                              ? 'text-indigo-700 bg-indigo-50'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
+          <SidebarNavigation pathname={pathname} />
+          <div className="border-t border-white/10 p-4">
+            <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-3">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
+              <div>
+                <p className="text-xs font-medium text-white/80">Workspace active</p>
+                <p className="mt-0.5 text-[10px] text-white/40">Clothing rentals</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-72">
         {/* Top bar */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button

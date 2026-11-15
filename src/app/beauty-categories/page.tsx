@@ -17,7 +17,8 @@ import {
   PencilIcon, 
   TrashIcon, 
   EyeIcon,
-  SparklesIcon
+  SparklesIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { apiService } from '@/services/api';
 import toast from 'react-hot-toast';
@@ -199,102 +200,98 @@ function BeautyCategoriesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600"></div>
+      <div className="space-y-6">
+        <div className="h-20 animate-pulse rounded-2xl border border-gray-100 bg-white" />
+        <div className="h-96 animate-pulse rounded-2xl border border-gray-100 bg-white" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-              <SparklesIcon className="h-8 w-8 text-pink-500" />
+              <SparklesIcon className="h-7 w-7 text-pink-500" />
               Beauty Categories Management
             </h1>
             <p className="mt-1 text-sm text-gray-500">
               Manage categories for all beauty sections
             </p>
           </div>
+          <button
+            onClick={handleCreateCategory}
+            className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <PlusIcon className="h-5 w-5" />
+            Add {categoryTypeConfig[activeCategoryType].label.split(' ')[0]} Category
+          </button>
         </div>
 
         {/* Category Type Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 overflow-x-auto">
-            {(Object.keys(categoryTypeConfig) as CategoryType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => setActiveCategoryType(type)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  activeCategoryType === type
-                    ? 'border-pink-500 text-pink-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {categoryTypeConfig[type].label}
-              </button>
-            ))}
-          </nav>
+        <div className="inline-flex flex-wrap gap-1 rounded-2xl border border-gray-100 bg-white p-1.5 shadow-sm">
+          {(Object.keys(categoryTypeConfig) as CategoryType[]).map((type) => (
+            <button
+              key={type}
+              onClick={() => setActiveCategoryType(type)}
+              className={`rounded-xl px-4 py-2 text-sm whitespace-nowrap ${
+                activeCategoryType === type
+                  ? 'bg-pink-600 font-semibold text-white shadow-sm'
+                  : 'font-medium text-gray-600 hover:bg-pink-50'
+              }`}
+            >
+              {categoryTypeConfig[type].label}
+            </button>
+          ))}
         </div>
 
         {/* Categories List */}
         <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={handleCreateCategory}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Add {categoryTypeConfig[activeCategoryType].label.split(' ')[0]} Category
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
-              <div key={category._id} className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="relative h-48">
+              <div key={category._id} className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                   <img
                     src={category.image}
                     alt={category.name}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  {!category.isActive && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs">
-                      Inactive
-                    </div>
-                  )}
+                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-pink-600 shadow-sm">
+                    Order {category.sortOrder}
+                  </span>
+                  <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm ${
+                    category.isActive ? 'bg-emerald-500/95' : 'bg-red-500/95'
+                  }`}>
+                    {category.isActive ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{category.name}</h3>
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
                   {category.description && (
-                    <p className="text-sm text-gray-500 mb-2 line-clamp-2">{category.description}</p>
+                    <p className="mt-1 text-sm text-gray-500 line-clamp-2">{category.description}</p>
                   )}
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-xs text-gray-400">Order: {category.sortOrder}</span>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleViewCategory(category)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                        title="View"
-                      >
-                        <EyeIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEditCategory(category)}
-                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded"
-                        title="Edit"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(category._id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
-                        title="Delete"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
+                  <div className="mt-4 flex items-center justify-end gap-1 border-t border-gray-100 pt-3">
+                    <button
+                      onClick={() => handleViewCategory(category)}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-pink-50 hover:text-pink-600"
+                      title="View"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleEditCategory(category)}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-pink-50 hover:text-pink-600"
+                      title="Edit"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(category._id)}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                      title="Delete"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -302,55 +299,70 @@ function BeautyCategoriesPage() {
           </div>
 
           {categories.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No categories found. Create one to get started.</p>
+            <div className="rounded-2xl border border-gray-100 bg-white py-16 text-center shadow-sm">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-50 text-pink-600">
+                <SparklesIcon className="h-7 w-7" />
+              </div>
+              <p className="mt-4 text-lg font-medium text-gray-900">Nothing here yet</p>
+              <p className="mt-1 text-sm text-gray-500">Create a category to get started.</p>
             </div>
           )}
         </div>
 
         {/* Create/Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold mb-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+            <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                <h3 className="text-lg font-semibold text-gray-900">
                   {editingCategory ? 'Edit Category' : 'Create Category'}
-                </h2>
-                <form onSubmit={handleSubmitCategory} className="space-y-4">
+                </h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  aria-label="Close"
+                  className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSubmitCategory} className="flex min-h-0 flex-1 flex-col">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                    <label className="block text-sm font-medium text-gray-700">Name *</label>
                     <input
                       type="text"
                       required
                       value={categoryForm.name}
                       onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                      className="w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label className="block text-sm font-medium text-gray-700">Description</label>
                     <textarea
                       value={categoryForm.description}
                       onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
                       rows={3}
-                      className="w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Image *</label>
-                    <ImageUpload
-                      value={categoryForm.image}
-                      onChange={(value) => setCategoryForm({ ...categoryForm, image: value })}
-                    />
+                    <label className="block text-sm font-medium text-gray-700">Image *</label>
+                    <div className="mt-1">
+                      <ImageUpload
+                        value={categoryForm.image}
+                        onChange={(value) => setCategoryForm({ ...categoryForm, image: value })}
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Sort Order</label>
+                      <label className="block text-sm font-medium text-gray-700">Sort Order</label>
                       <input
                         type="number"
                         value={categoryForm.sortOrder}
                         onChange={(e) => setCategoryForm({ ...categoryForm, sortOrder: parseInt(e.target.value) || 0 })}
-                        className="w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                        className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                       />
                     </div>
                     <div className="flex items-center pt-6">
@@ -365,75 +377,74 @@ function BeautyCategoriesPage() {
                       </label>
                     </div>
                   </div>
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowModal(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700"
-                    >
-                      {editingCategory ? 'Update' : 'Create'}
-                    </button>
-                  </div>
-                </form>
-              </div>
+                </div>
+                <div className="flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {editingCategory ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
 
         {/* View Modal */}
         {viewingCategory && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-semibold">View Category Details</h2>
-                  <button
-                    onClick={() => setViewingCategory(null)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-3 sm:p-6">
+            <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                <h3 className="text-lg font-semibold text-gray-900">View Category Details</h3>
+                <button
+                  onClick={() => setViewingCategory(null)}
+                  aria-label="Close"
+                  className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+                <div className="relative h-56 w-full overflow-hidden rounded-xl bg-gray-100">
+                  <img
+                    src={viewingCategory.image}
+                    alt={viewingCategory.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{viewingCategory.name}</h3>
+                  {viewingCategory.description && (
+                    <p className="mt-2 text-sm text-gray-600">{viewingCategory.description}</p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <img
-                      src={viewingCategory.image}
-                      alt={viewingCategory.name}
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
+                    <span className="font-medium text-gray-700">Status:</span>{' '}
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                      viewingCategory.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                    }`}>
+                      {viewingCategory.isActive ? 'Active' : 'Inactive'}
+                    </span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">{viewingCategory.name}</h3>
-                    {viewingCategory.description && (
-                      <p className="text-gray-600 mt-2">{viewingCategory.description}</p>
-                    )}
+                    <span className="font-medium text-gray-700">Sort Order:</span> {viewingCategory.sortOrder}
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Status:</span>{' '}
-                      <span className={viewingCategory.isActive ? 'text-green-600' : 'text-red-600'}>
-                        {viewingCategory.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Sort Order:</span> {viewingCategory.sortOrder}
-                    </div>
-                    <div>
-                      <span className="font-medium">Created:</span>{' '}
-                      {new Date(viewingCategory.createdAt).toLocaleDateString()}
-                    </div>
-                    <div>
-                      <span className="font-medium">Updated:</span>{' '}
-                      {new Date(viewingCategory.updatedAt).toLocaleDateString()}
-                    </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Created:</span>{' '}
+                    {new Date(viewingCategory.createdAt).toLocaleDateString()}
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Updated:</span>{' '}
+                    {new Date(viewingCategory.updatedAt).toLocaleDateString()}
                   </div>
                 </div>
               </div>

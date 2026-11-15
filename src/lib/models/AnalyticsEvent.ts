@@ -33,6 +33,7 @@ analyticsEventSchema.index({ type: 1, createdAt: -1 });
 analyticsEventSchema.index({ type: 1, productId: 1, createdAt: -1 });
 analyticsEventSchema.index({ type: 1, categorySlug: 1, createdAt: -1 });
 analyticsEventSchema.index({ type: 1, keyword: 1, createdAt: -1 });
+analyticsEventSchema.index({ visitorId: 1, type: 1, createdAt: -1 });
 
 const AnalyticsEvent: Model<IAnalyticsEvent> =
   mongoose.models.AnalyticsEvent || mongoose.model<IAnalyticsEvent>('AnalyticsEvent', analyticsEventSchema);

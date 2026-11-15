@@ -123,9 +123,9 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <label className={`flex min-h-28 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-center transition-colors ${images.length >= maxImages || isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-indigo-400 hover:bg-indigo-50'}`}>
+      <label className={`flex min-h-28 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-center transition-colors ${images.length >= maxImages || isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-gray-400 hover:bg-gray-100'}`}>
         {isUploading ? (
-          <div className="mb-2 h-7 w-7 animate-spin rounded-full border-b-2 border-indigo-600" />
+          <div className="mb-2 h-7 w-7 animate-spin rounded-full border-b-2 border-gray-900" />
         ) : (
           <PhotoIcon className="mb-2 h-7 w-7 text-gray-400" />
         )}
@@ -163,8 +163,8 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                   handleDrop(index);
                 }}
                 onDragEnd={() => setDraggedIndex(null)}
-                className={`group relative aspect-square overflow-hidden rounded-lg border bg-gray-100 ${
-                  draggedIndex === index ? 'border-indigo-500 opacity-50' : 'border-gray-200'
+                className={`group relative aspect-square overflow-hidden rounded-xl border bg-gray-100 ${
+                  draggedIndex === index ? 'border-gray-900 opacity-50' : 'border-gray-200'
                 } ${isUploading ? 'cursor-wait' : 'cursor-grab active:cursor-grabbing'}`}
               >
                 <Image

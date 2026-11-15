@@ -190,6 +190,38 @@ export interface DashboardStats {
   customerTotalCustomers?: number;
   customerActiveCustomers?: number;
   topCustomers?: Customer[]; // Array of top customer objects
+  // Trend & recent activity
+  monthlyTrend?: MonthlyTrendPoint[];
+  recentBookings?: RecentBooking[];
+}
+
+export interface MonthlyTrendPoint {
+  month: string;
+  revenue: number;
+  profit: number;
+  bookings: number;
+}
+
+export interface RecentBooking {
+  _id: string;
+  bookingId: string;
+  customerName: string;
+  customerMobile: string;
+  itemsCount: number;
+  totalPrice: number;
+  totalPaid: number;
+  status: 'active' | 'completed' | 'canceled';
+  createdAt: string;
+}
+
+export interface AnalyticsViewer {
+  visitorId: string;
+  name: string;
+  mobile: string;
+  city: string;
+  views: number;
+  clicks: number;
+  isUnknown: boolean;
 }
 
 export interface AnalyticsDashboardData {
@@ -198,13 +230,37 @@ export interface AnalyticsDashboardData {
     totalProductClicks: number;
     uniqueVisitors: number;
     repeatVisitors: number;
+    identifiedVisitors: number;
+    unknownVisitors: number;
     totalCategoryClicks: number;
     totalSearches: number;
     visitorProfilesCount: number;
+    clickThroughRate: number;
+    avgViewsPerVisitor: number;
   };
   visitorProfiles: VisitorProfileRecord[];
   products: ProductActivityStat[];
   mostClickedProducts: ProductActivityStat[];
+  dailyTrend: Array<{
+    date: string;
+    views: number;
+    clicks: number;
+    uniqueVisitors: number;
+  }>;
+  hourlyViews: Array<{
+    hour: number;
+    views: number;
+  }>;
+  topVisitors: Array<{
+    visitorId: string;
+    name: string;
+    mobile: string;
+    city: string;
+    isUnknown: boolean;
+    views: number;
+    uniqueDresses: number;
+    lastSeen: string;
+  }>;
   categories: Array<{
     categorySlug: string;
     name: string;
@@ -250,6 +306,7 @@ export interface ProductActivityStat {
     uniqueClickVisitors: number;
     imageUrl: string | null;
     detailUrl: string;
+    viewers: AnalyticsViewer[];
 }
 
 export interface LoginCredentials {

@@ -41,7 +41,7 @@ export default function Layout({ children }: LayoutProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-[#b87570]"></div>
       </div>
     );
   }

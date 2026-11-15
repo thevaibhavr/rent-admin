@@ -6,6 +6,22 @@ import ImageUpload from './ImageUpload';
 import { apiService } from '@/services/api';
 import { Product, Booking, Customer } from '@/types';
 import toast from 'react-hot-toast';
+import {
+  UserIcon,
+  ScaleIcon,
+  CalendarDaysIcon,
+  InformationCircleIcon,
+  ShoppingBagIcon,
+  TagIcon,
+  CreditCardIcon,
+  ClockIcon,
+  BanknotesIcon,
+  CalculatorIcon,
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 
 interface BookingItemFormData {
   dressId: string;
@@ -707,16 +723,12 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
       <div className="space-y-8">
         {/* Basic Customer Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </span>
-              Customer Information
-            </h2>
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7ede8] text-[#b87570]">
+              <UserIcon className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-semibold text-gray-900">Customer Information</h2>
           </div>
 
           <div className="p-6">
@@ -727,7 +739,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               type="text" 
               value={form.customer?.name || ''} 
               onChange={(e) => handleCustomerChange('name', e.target.value)} 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   placeholder="Enter customer name"
               required
             />
@@ -739,12 +751,12 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   type="tel"
               value={form.customer?.mobile || ''}
               onChange={(e) => handleCustomerChange('mobile', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   placeholder="Enter mobile number"
                   required
             />
                 {showCustomerSuggestions && customerSuggestions.length > 0 && (
-                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg">
                     {customerSuggestions.map((customer) => (
                       <button
                         key={customer._id}
@@ -769,7 +781,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   type="email"
                   value={form.customer?.email || ''}
                   onChange={(e) => handleCustomerChange('email', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   placeholder="customer@example.com"
                 />
               </div>
@@ -780,7 +792,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               type="text" 
               value={form.customer?.location || ''} 
               onChange={(e) => handleCustomerChange('location', e.target.value)} 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   placeholder="Enter address or location"
             />
           </div>
@@ -793,21 +805,16 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                 />
           </div>
         </div>
-
         </div>
-        </div>
+      </div>
 
         {/* Size & Measurements */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                </svg>
-              </span>
-              Size & Measurements
-            </h2>
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7ede8] text-[#b87570]">
+              <ScaleIcon className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-semibold text-gray-900">Size & Measurements</h2>
           </div>
 
           <div className="p-6">
@@ -827,14 +834,14 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                       }
                     }
                   }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   placeholder="S, M, L, XL, etc."
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-md font-medium text-gray-900">Body Measurements (Optional)</h3>
+              <h3 className="text-sm font-semibold text-gray-900">Body Measurements (Optional)</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-gray-600">Bust (cm)</label>
@@ -851,7 +858,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-sm"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="85"
                   />
                 </div>
@@ -870,7 +877,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-sm"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="65"
                   />
                 </div>
@@ -889,7 +896,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-sm"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="90"
                   />
                 </div>
@@ -908,7 +915,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-sm"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="35"
                   />
                 </div>
@@ -927,7 +934,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-sm"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="150"
                   />
                 </div>
@@ -936,7 +943,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
             {/* Emergency Contact */}
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-md font-medium text-gray-900 mb-4">Emergency Contact (Optional)</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Emergency Contact (Optional)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Contact Name</label>
@@ -953,7 +960,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="Emergency contact name"
                   />
                 </div>
@@ -972,26 +979,22 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         }
                       }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     placeholder="Emergency contact phone"
                   />
                 </div>
               </div>
             </div>
-          </div>
         </div>
+      </div>
 
         {/* Booking Details */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-              </span>
-              Booking Details
-            </h2>
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7ede8] text-[#b87570]">
+              <CalendarDaysIcon className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-semibold text-gray-900">Booking Details</h2>
           </div>
 
           <div className="p-6">
@@ -1002,7 +1005,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   value={form.deliveryAddress || ''}
                   onChange={(e) => setForm(prev => ({ ...prev, deliveryAddress: e.target.value }))}
                   placeholder="If different from customer location"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30 resize-none"
                   rows={3}
                 />
               </div>
@@ -1016,7 +1019,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                       value={form.rentalDuration || ''}
                       onChange={(e) => setForm(prev => ({ ...prev, rentalDuration: Number(e.target.value) }))}
                       min="1"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       placeholder="Days"
                     />
                   </div>
@@ -1027,7 +1030,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                       type="date"
                       value={form.returnDeadline || ''}
                       onChange={(e) => setForm(prev => ({ ...prev, returnDeadline: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     />
                   </div>
                 </div>
@@ -1037,7 +1040,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   <select
                     value={form.paymentMethod || 'cash'}
                     onChange={(e) => setForm(prev => ({ ...prev, paymentMethod: e.target.value as 'cash' | 'online' | 'card' | 'bank_transfer' | 'upi' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   >
                     <option value="cash">💵 Cash</option>
                     <option value="online">💳 Online Transfer</option>
@@ -1051,7 +1054,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
             {/* Operational Costs */}
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-md font-medium text-gray-900 mb-4">Operational Costs</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Operational Costs</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Transport Cost (₹)</label>
@@ -1060,7 +1063,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     value={form.items[0]?.transportCost || ''}
                     onChange={(e) => handleItemChange(0, 'transportCost', Number(e.target.value))}
                     placeholder="Cost of transportation"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1070,7 +1073,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     value={form.items[0]?.dryCleaningCost || ''}
                     onChange={(e) => handleItemChange(0, 'dryCleaningCost', Number(e.target.value))}
                     placeholder="Cost of dry cleaning"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   />
                 </div>
               </div>
@@ -1083,24 +1086,20 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                 value={form.specialInstructions || ''}
                 onChange={(e) => setForm(prev => ({ ...prev, specialInstructions: e.target.value }))}
                 placeholder="Care instructions, delivery preferences, special requests..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
+                className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30 resize-none"
                 rows={3}
               />
             </div>
-          </div>
         </div>
+      </div>
 
         {/* Additional Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </span>
-              Additional Information
-            </h2>
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7ede8] text-[#b87570]">
+              <InformationCircleIcon className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-semibold text-gray-900">Additional Information</h2>
           </div>
 
           <div className="p-6">
@@ -1111,7 +1110,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
             type="text" 
             value={form.referenceCustomer || ''} 
             onChange={(e) => setForm(prev => ({ ...prev, referenceCustomer: e.target.value }))} 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   placeholder="Referred by..."
           />
         </div>
@@ -1124,7 +1123,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   value={form.adminNotes || ''}
                   onChange={(e) => setForm(prev => ({ ...prev, adminNotes: e.target.value }))}
                   placeholder="Internal notes for admin reference"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors resize-none"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30 resize-none"
                   rows={4}
                 />
               </div>
@@ -1135,7 +1134,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   value={form.customerNotes || ''}
                   onChange={(e) => setForm(prev => ({ ...prev, customerNotes: e.target.value }))}
                   placeholder="Notes from or about the customer"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors resize-none"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30 resize-none"
                   rows={4}
                 />
               </div>
@@ -1145,43 +1144,33 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
       </div>
 
         {/* Booking Items */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                <span className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Dress Items ({form.items.length})
-              </h2>
-          <button
-            onClick={addItem}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
-          >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-            Add Dress
-          </button>
-            </div>
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7ede8] text-[#b87570]">
+              <ShoppingBagIcon className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-semibold text-gray-900">Dress Items ({form.items.length})</h2>
+            <button
+              onClick={addItem}
+              className="ml-auto inline-flex items-center gap-2 rounded-xl bg-[#b87570] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f]"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add Dress
+            </button>
         </div>
 
           <div className="p-6">
             <div className="space-y-6">
         {form.items.map((item, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                <div key={index} className="rounded-xl border border-gray-100 bg-gray-50 p-4 sm:p-5">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Item {index + 1}</h3>
+                    <h3 className="text-base font-semibold text-gray-900">Item {index + 1}</h3>
               {form.items.length > 1 && (
                 <button
                   onClick={() => removeItem(index)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
+                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
                 >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <TrashIcon className="h-4 w-4" />
                   Remove
                 </button>
               )}
@@ -1191,20 +1180,23 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               {/* Product Selection */}
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Select Product *</label>
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search for products..."
-                  className="mb-2 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black"
-                />
+                <div className="relative mb-2">
+                  <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search for products..."
+                    className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
+                  />
+                </div>
                 
                 {/* Custom Dropdown */}
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setOpenDropdowns(prev => ({ ...prev, [index]: !prev[index] }))}
-                    className="w-full flex items-center justify-between rounded-md border border-gray-300 bg-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-black text-left"
+                    className="w-full flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-left text-sm text-gray-900 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={loading}
                   >
                     <div className="flex items-center gap-2">
@@ -1253,9 +1245,9 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         className="fixed inset-0 z-10"
                         onClick={() => setOpenDropdowns(prev => ({ ...prev, [index]: false }))}
                       />
-                      <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                      <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-100 bg-white shadow-lg">
                         {filtered.length === 0 ? (
-                          <div className="px-3 py-2 text-sm text-gray-500 text-black">
+                          <div className="px-3 py-2 text-sm text-gray-500">
                             No products found
                           </div>
                         ) : (
@@ -1270,7 +1262,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                                 setOpenDropdowns(prev => ({ ...prev, [index]: false }));
                               }}
                               className={`w-full flex items-center gap-3 px-3 py-2 text-sm text-left hover:bg-gray-100 ${
-                                item.dressId === d._id ? 'bg-indigo-50' : ''
+                                item.dressId === d._id ? 'bg-[#f7ede8]' : ''
                               }`}
                             >
                               {d.images && d.images.length > 0 ? (
@@ -1289,11 +1281,11 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-black truncate">
+                                <div className="truncate font-medium text-gray-900">
                                   {d.name}
-                                  {d.brand && <span className="text-gray-600 text-black"> ({d.brand})</span>}
+                                  {d.brand && <span className="text-gray-500"> ({d.brand})</span>}
                                 </div>
-                                <div className="text-gray-600 text-black">₹{d.price}</div>
+                                <div className="text-gray-500">₹{d.price}</div>
                               </div>
                             </button>
                           ))
@@ -1308,7 +1300,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                   const selectedProduct = dresses.find(d => d._id === item.dressId);
                   return selectedProduct?.images && selectedProduct.images.length > 0 ? (
                   <div className="mt-2">
-                    <div className="border border-gray-300 rounded-lg overflow-hidden inline-block">
+                    <div className="inline-block overflow-hidden rounded-xl border border-gray-200">
                       <div className="relative w-32 h-32">
                         <Image
                             src={selectedProduct.images[0]}
@@ -1325,13 +1317,9 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               </div>
 
               {/* Price Fields */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                  <span className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center mr-2">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
-                    </svg>
-                  </span>
+              <div className="rounded-xl border border-gray-100 bg-white p-4">
+                <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  <TagIcon className="h-4 w-4 text-[#b87570]" />
                   Pricing Details
                 </h4>
 
@@ -1342,7 +1330,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                       type="number"
                       value={item.originalPrice || ''}
                       onChange={(e) => handleItemChange(index, 'originalPrice', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       placeholder="₹0.00"
                       required
                     />
@@ -1353,7 +1341,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="number" 
                     value={item.priceAfterBargain || ''} 
                     onChange={(e) => handleItemChange(index, 'priceAfterBargain', Number(e.target.value))} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       placeholder="₹0.00"
                     required
                   />
@@ -1364,7 +1352,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="number" 
                       value={item.discount || ''}
                       readOnly
-                      className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg text-gray-700"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700"
                       placeholder="₹0.00"
                     />
                     <p className="text-xs text-gray-500">Auto-calculated</p>
@@ -1373,13 +1361,9 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               </div>
 
               {/* Payment Fields */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                  <span className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center mr-2">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
-                    </svg>
-                  </span>
+              <div className="rounded-xl border border-gray-100 bg-white p-4">
+                <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  <CreditCardIcon className="h-4 w-4 text-[#b87570]" />
                   Payment Information
                 </h4>
 
@@ -1390,7 +1374,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="number" 
                       value={item.bookingAmount || ''}
                       onChange={(e) => handleItemChange(index, 'bookingAmount', Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       placeholder="₹0.00"
                     />
                     <p className="text-xs text-gray-500">Initial payment to book</p>
@@ -1401,7 +1385,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="number" 
                     value={item.securityAmount || ''} 
                     onChange={(e) => handleItemChange(index, 'securityAmount', Number(e.target.value))} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       placeholder="₹0.00"
                   />
                     <p className="text-xs text-gray-500">Refundable deposit</p>
@@ -1410,13 +1394,9 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               </div>
 
               {/* Booking Timeline & Usage */}
-              <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200">
-                <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                  <span className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center mr-2">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                    </svg>
-                  </span>
+              <div className="mt-6 rounded-xl border border-gray-100 bg-white p-4">
+                <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  <ClockIcon className="h-4 w-4 text-[#b87570]" />
                   Timeline & Usage
                 </h4>
 
@@ -1427,7 +1407,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                       type="date"
                       value={item.bookingDate || ''}
                       onChange={(e) => handleItemChange(index, 'bookingDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       required
                     />
                     <p className="text-xs text-gray-500">When the booking was made</p>
@@ -1439,7 +1419,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="date" 
                     value={item.sendDate || ''} 
                     onChange={(e) => handleItemChange(index, 'sendDate', e.target.value)} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   />
                     <p className="text-xs text-gray-500">When dress was dispatched</p>
                 </div>
@@ -1450,7 +1430,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="date" 
                     value={item.receiveDate || ''} 
                     onChange={(e) => handleItemChange(index, 'receiveDate', e.target.value)} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                   />
                     <p className="text-xs text-gray-500">When dress was returned</p>
               </div>
@@ -1461,7 +1441,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     type="text" 
                     value={item.useDress || ''} 
                     onChange={(e) => handleItemChange(index, 'useDress', e.target.value)} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                       placeholder="Wedding, Party, etc."
                   />
                     <p className="text-xs text-gray-500">Occasion for renting</p>
@@ -1473,7 +1453,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                       type="date" 
                       value={item.useDressDate || ''} 
                       onChange={(e) => handleItemChange(index, 'useDressDate', e.target.value)} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     />
                     <p className="text-xs text-gray-500">When the event occurs</p>
                   </div>
@@ -1483,7 +1463,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                     <select 
                       value={item.useDressTime || ''} 
                       onChange={(e) => handleItemChange(index, 'useDressTime', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                     >
                       <option value="">Select time</option>
                       <option value="morning">🌅 Morning</option>
@@ -1496,9 +1476,12 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               </div>
 
               {/* Additional Costs */}
-              <div className="mt-6 p-4 bg-orange-50 rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-900">Additional Costs</h4>
+              <div className="mt-6 rounded-xl border border-gray-100 bg-white p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <BanknotesIcon className="h-4 w-4 text-[#b87570]" />
+                    Additional Costs
+                  </h4>
                   <button
                     type="button"
                     onClick={() => {
@@ -1512,7 +1495,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                         )
                       }));
                     }}
-                    className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
+                    className="inline-flex items-center gap-1 rounded-lg bg-[#b87570] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#a5655f]"
                   >
                     + Add Cost
                   </button>
@@ -1536,7 +1519,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                             }));
                           }}
                           placeholder="Reason for cost"
-                          className="flex-1 rounded-md border border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm px-3 py-2 text-black"
+                          className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                         />
                         <input
                           type="number"
@@ -1552,7 +1535,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                             }));
                           }}
                           placeholder="Amount (₹)"
-                          className="w-24 rounded-md border border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm px-3 py-2 text-black"
+                          className="w-24 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
                         />
                         <button
                           type="button"
@@ -1565,11 +1548,9 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                               )
                             }));
                           }}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-50"
                         >
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          <TrashIcon className="h-4 w-4" />
                         </button>
           </div>
         ))}
@@ -1580,29 +1561,33 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
                 </div>
           ))}
         </div>
+        </div>
       </div>
 
       {/* Totals Summary */}
-      <div className="border-2 border-indigo-500 p-6 rounded-lg bg-indigo-50">
-        <h3 className="font-semibold text-gray-900 mb-4">Booking Summary</h3>
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+        <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
+          <CalculatorIcon className="h-5 w-5 text-[#b87570]" />
+          Booking Summary
+        </h3>
 
         {/* Payment Summary */}
         <div className="mb-6">
-          <h4 className="text-md font-medium text-gray-800 mb-3">Payment Details</h4>
+          <h4 className="mb-3 text-sm font-semibold text-gray-700">Payment Details</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Total Booking Amount</label>
               <div className="text-xl font-bold text-blue-600">₹{totals.totalBookingAmount.toLocaleString()}</div>
           </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Security Deposit</label>
               <div className="text-xl font-bold text-purple-600">₹{totals.totalSecurity.toLocaleString()}</div>
           </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Total Paid</label>
               <div className="text-xl font-bold text-green-600">₹{totals.totalPaid.toLocaleString()}</div>
           </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Pending Amount</label>
               <div className="text-xl font-bold text-yellow-600">₹{totals.totalPending.toLocaleString()}</div>
               <p className="text-xs text-gray-500 mt-1">Auto-calculated</p>
@@ -1612,21 +1597,21 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
         {/* Cost Breakdown */}
         <div className="mb-6">
-          <h4 className="text-md font-medium text-gray-800 mb-3">Cost Breakdown</h4>
+          <h4 className="mb-3 text-sm font-semibold text-gray-700">Cost Breakdown</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Dress Price</label>
-              <div className="text-lg font-bold text-indigo-600">₹{totals.totalPrice.toLocaleString()}</div>
+              <div className="text-lg font-bold text-[#633b3b]">₹{totals.totalPrice.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Transport Costs</label>
               <div className="text-lg font-bold text-orange-600">₹{totals.totalTransportCost.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Dry Cleaning</label>
               <div className="text-lg font-bold text-red-600">₹{totals.totalDryCleaningCost.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Additional Costs</label>
               <div className="text-lg font-bold text-pink-600">₹{totals.totalAdditionalCosts.toLocaleString()}</div>
             </div>
@@ -1635,25 +1620,25 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
         {/* Operational Costs & Profit */}
         <div className="mb-6">
-          <h4 className="text-md font-medium text-gray-800 mb-3">Operational Costs & Profit</h4>
+          <h4 className="mb-3 text-sm font-semibold text-gray-700">Operational Costs & Profit</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Total Operational Cost</label>
               <div className="text-lg font-bold text-red-600">₹{totals.totalOperationalCost.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Gross Profit</label>
               <div className={`text-lg font-bold ${(totals.grossProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 ₹{totals.grossProfit.toLocaleString()}
               </div>
             </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Net Profit</label>
               <div className={`text-lg font-bold ${(totals.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 ₹{totals.netProfit.toLocaleString()}
               </div>
             </div>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <div className={`text-lg font-bold ${(totals.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {(totals.netProfit || 0) >= 0 ? 'Profit' : 'Loss'}
@@ -1663,7 +1648,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
         </div>
 
         {/* Profit/Loss Indicator */}
-        <div className="mt-4 p-3 rounded-lg bg-white border">
+        <div className="mt-4 rounded-xl bg-[#f7ede8] p-3">
           <div className="flex items-center justify-between">
           <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Overall Status</label>
@@ -1680,12 +1665,15 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
 
       {/* Complete Payment Section */}
       {initial._id && initial.status !== 'canceled' && initial.status !== 'completed' && (
-        <div className="border-2 border-green-500 p-6 rounded-lg bg-green-50">
-          <h3 className="font-semibold text-gray-900 mb-4">Complete Payment</h3>
+        <div className="rounded-2xl border border-[#f7ede8] bg-[#f7ede8]/50 p-5 shadow-sm sm:p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
+            <BanknotesIcon className="h-5 w-5 text-[#b87570]" />
+            Complete Payment
+          </h3>
 
           {/* Payment Summary */}
-          <div className="mb-4 p-4 bg-white rounded-lg border border-green-200">
-            <h4 className="text-sm font-medium text-gray-900 mb-3">Payment Summary</h4>
+          <div className="mb-4 rounded-xl border border-gray-100 bg-white p-4">
+            <h4 className="mb-3 text-sm font-semibold text-gray-900">Payment Summary</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div>
                 <span className="text-gray-600">Total Amount:</span>
@@ -1705,7 +1693,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
           <div className="flex justify-center">
             <button
               onClick={handleCompletePayment}
-              className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#b87570] px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f]"
               title="Mark payment as completed"
             >
               ✅ Mark Payment as Completed
@@ -1718,16 +1706,12 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
       )}
 
         {/* Action Buttons */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </span>
-              Actions
-            </h2>
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7ede8] text-[#b87570]">
+              <CheckCircleIcon className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-semibold text-gray-900">Actions</h2>
           </div>
 
           <div className="p-6">
@@ -1735,20 +1719,19 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancel
               </button>
         <button 
           onClick={handleSubmit} 
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#b87570] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#a5655f] disabled:cursor-not-allowed disabled:opacity-60"
         >
                 {initial._id ? 'Update Booking' : 'Create Booking'}
         </button>
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };

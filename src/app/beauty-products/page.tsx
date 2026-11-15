@@ -285,8 +285,9 @@ function BeautyProductsPage() {
 
   if (loadingCategories) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600"></div>
+      <div className="space-y-6">
+        <div className="h-20 animate-pulse rounded-2xl border border-gray-100 bg-white" />
+        <div className="h-96 animate-pulse rounded-2xl border border-gray-100 bg-white" />
       </div>
     );
   }
@@ -295,7 +296,7 @@ function BeautyProductsPage() {
   if (mode === 'view') {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">View Beauty Products</h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -304,15 +305,15 @@ function BeautyProductsPage() {
           </div>
           <a
             href="/beauty-products?mode=add"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <PlusIcon className="h-4 w-4 mr-2" />
+            <PlusIcon className="h-4 w-4" />
             Add Product
           </a>
         </div>
 
         {/* Filters */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Products</h3>
@@ -325,7 +326,7 @@ function BeautyProductsPage() {
                     setFilterCategory('');
                     setCurrentPage(1);
                   }}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Clear Filters
                 </button>
@@ -336,7 +337,7 @@ function BeautyProductsPage() {
                   setFilterCategory('');
                   setCurrentPage(1);
                 }}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Show All Products
               </button>
@@ -347,7 +348,8 @@ function BeautyProductsPage() {
               <label htmlFor="search" className="block text-sm font-medium text-gray-700">
                 Search Products
               </label>
-              <div className="mt-1 relative">
+              <div className="relative mt-1">
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   id="search"
@@ -356,12 +358,9 @@ function BeautyProductsPage() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="block w-full pr-10 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                   placeholder="Search by name..."
                 />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
               </div>
             </div>
 
@@ -376,7 +375,7 @@ function BeautyProductsPage() {
                   setFilterCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="mt-1 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
               >
                 <option value="">All Categories</option>
                 {categories.map((category) => (
@@ -388,8 +387,8 @@ function BeautyProductsPage() {
             </div>
 
             <div className="flex items-end">
-              <div className="w-full bg-gray-50 rounded-md p-3 border border-gray-200">
-                <p className="text-xs text-gray-500 mb-1">Products Count</p>
+              <div className="w-full rounded-xl border border-pink-100 bg-pink-50 p-3">
+                <p className="text-xs text-pink-700 mb-1">Products Count</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {totalProducts > 0 ? (
                     <>
@@ -403,16 +402,16 @@ function BeautyProductsPage() {
             </div>
           </div>
           {(searchTerm || filterCategory) && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Active filters:</span>
                 {searchTerm && (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                  <span className="ml-2 inline-flex items-center rounded-full bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700">
                     Search: {searchTerm}
                   </span>
                 )}
                 {filterCategory && (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                  <span className="ml-2 inline-flex items-center rounded-full bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700">
                     Category: {categories.find(c => c._id === filterCategory)?.name || 'Unknown'}
                   </span>
                 )}
@@ -423,15 +422,21 @@ function BeautyProductsPage() {
 
         {/* Products Grid */}
         {loadingProducts ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600"></div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-72 animate-pulse rounded-2xl border border-gray-100 bg-white" />
+            ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="bg-white shadow rounded-lg p-12 text-center">
-            <p className="text-gray-500 text-lg mb-4">
+          <div className="rounded-2xl border border-gray-100 bg-white py-16 text-center shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-50 text-pink-600">
+              <PlusIcon className="h-7 w-7" />
+            </div>
+            <p className="mt-4 text-lg font-medium text-gray-900">No products found</p>
+            <p className="mt-1 text-sm text-gray-500">
               {searchTerm || filterCategory 
                 ? 'No products found matching your filters.' 
-                : 'No products found. Create one to get started.'}
+                : 'Create one to get started.'}
             </p>
             {(searchTerm || filterCategory) && (
               <button
@@ -440,27 +445,37 @@ function BeautyProductsPage() {
                   setFilterCategory('');
                   setCurrentPage(1);
                 }}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Clear Filters and Show All
               </button>
             )}
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
-                <div key={product._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-w-1 aspect-h-1 w-full">
+                <div key={product._id} className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                     <Image 
-                      className="w-full h-48 object-cover" 
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
                       src={product.images[0] || 'https://via.placeholder.com/300x300?text=No+Image'} 
                       alt={product.name}
                       width={300}
                       height={300}
                     />
+                    {product.brand && (
+                      <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-pink-600 shadow-sm">
+                        {product.brand}
+                      </span>
+                    )}
+                    <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm ${
+                      product.isAvailable ? 'bg-emerald-500/95' : 'bg-red-500/95'
+                    }`}>
+                      {product.isAvailable ? 'Available' : 'Unavailable'}
+                    </span>
                   </div>
-                  <div className="p-4">
+                  <div className="flex flex-1 flex-col p-4">
                     <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
                     <p className="text-sm text-gray-500 mt-1">
                       {product.categories && product.categories.length > 0
@@ -468,46 +483,34 @@ function BeautyProductsPage() {
                         : product.category?.name || 'No category'
                       }
                     </p>
-                    {product.brand && (
-                      <p className="text-xs text-gray-400 mt-1">Brand: {product.brand}</p>
-                    )}
-                    <div className="mt-2 flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-semibold text-gray-900">${product.price}</span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through ml-2">${product.originalPrice}</span>
-                        )}
-                      </div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        product.isAvailable 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.isAvailable ? 'Available' : 'Unavailable'}
-                      </span>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-lg font-semibold text-gray-900">₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString('en-IN')}</span>
+                      )}
                     </div>
                     {product.sizes && product.sizes.length > 0 && (
                       <div className="mt-2 text-xs text-gray-500">
                         Sizes: {product.sizes.map((s: unknown) => (s as { size?: string })?.size || 'Unknown').join(', ')}
                       </div>
                     )}
-                    <div className="mt-3 flex justify-between">
+                    <div className="mt-auto flex items-center justify-end gap-1 border-t border-gray-100 pt-3">
                       <button 
                         onClick={() => {
                           // Navigate to edit or show edit modal
                           window.location.href = `/beauty-products?mode=add&edit=${product._id}`;
                         }}
-                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center"
+                        className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-pink-50 hover:text-pink-600 flex items-center"
+                        title="Edit"
                       >
-                        <PencilIcon className="h-4 w-4 mr-1" />
-                        Edit
+                        <PencilIcon className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => handleDeleteProduct(product._id)}
-                        className="text-red-600 hover:text-red-900 text-sm font-medium flex items-center"
+                        className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 flex items-center"
+                        title="Delete"
                       >
-                        <TrashIcon className="h-4 w-4 mr-1" />
-                        Delete
+                        <TrashIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -517,48 +520,26 @@ function BeautyProductsPage() {
 
             {/* Pagination */}
             {products.length > 0 && totalPages > 1 && (
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div className="flex-1 flex justify-between sm:hidden">
+              <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <p className="text-sm text-gray-700">
+                  Showing page <span className="font-medium">{currentPage}</span> of{' '}
+                  <span className="font-medium">{totalPages}</span>
+                </p>
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Next
                   </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Showing page <span className="font-medium">{currentPage}</span> of{' '}
-                      <span className="font-medium">{totalPages}</span>
-                    </p>
-                  </div>
-                  <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                      <button
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Next
-                      </button>
-                    </nav>
-                  </div>
                 </div>
               </div>
             )}
@@ -571,7 +552,7 @@ function BeautyProductsPage() {
   // Add Product Mode
   return (
     <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Beauty Products</h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -580,28 +561,28 @@ function BeautyProductsPage() {
           </div>
           <a
             href="/beauty-products?mode=view"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             View Products
           </a>
         </div>
 
         {!showProductForm ? (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Category</h2>
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Select Category</h2>
             <p className="text-sm text-gray-600 mb-6">
               Choose a category to add a product to:
             </p>
             
             {categories.length > 0 ? (
               <div className="max-w-md">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category *
                 </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => handleCategorySelect(e.target.value)}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-2"
+                  className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                 >
                   <option value="">-- Select a category --</option>
                   {categories.map((category) => (
@@ -612,13 +593,17 @@ function BeautyProductsPage() {
                 </select>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No categories available. Please create categories first.</p>
+              <div className="rounded-2xl border border-gray-100 bg-white py-16 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-50 text-pink-600">
+                  <PlusIcon className="h-7 w-7" />
+                </div>
+                <p className="mt-4 text-lg font-medium text-gray-900">No categories yet</p>
+                <p className="mt-1 text-sm text-gray-500">Please create categories first.</p>
               </div>
             )}
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Add Product</h2>
@@ -631,7 +616,8 @@ function BeautyProductsPage() {
                   setShowProductForm(false);
                   setSelectedCategory('');
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -640,31 +626,31 @@ function BeautyProductsPage() {
             <form onSubmit={handleSubmitProduct} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                  <label className="block text-sm font-medium text-gray-700">Product Name *</label>
                   <input
                     type="text"
                     required
                     value={productForm.name}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="Enter product name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Brand *</label>
+                  <label className="block text-sm font-medium text-gray-700">Brand *</label>
                   <input
                     type="text"
                     required
                     value={productForm.brand}
                     onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="Brand name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">MRP (Maximum Retail Price) *</label>
+                  <label className="block text-sm font-medium text-gray-700">MRP (Maximum Retail Price) *</label>
                   <input
                     type="number"
                     required
@@ -672,13 +658,13 @@ function BeautyProductsPage() {
                     min="0"
                     value={productForm.mrp}
                     onChange={(e) => setProductForm({ ...productForm, mrp: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="0.00"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Original Price *</label>
+                  <label className="block text-sm font-medium text-gray-700">Original Price *</label>
                   <input
                     type="number"
                     required
@@ -686,13 +672,13 @@ function BeautyProductsPage() {
                     min="0"
                     value={productForm.originalPrice}
                     onChange={(e) => setProductForm({ ...productForm, originalPrice: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="0.00"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Merchant Price *</label>
+                  <label className="block text-sm font-medium text-gray-700">Merchant Price *</label>
                   <input
                     type="number"
                     required
@@ -700,26 +686,26 @@ function BeautyProductsPage() {
                     min="0"
                     value={productForm.merchantPrice}
                     onChange={(e) => setProductForm({ ...productForm, merchantPrice: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="0.00"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
+                  <label className="block text-sm font-medium text-gray-700">Stock *</label>
                   <input
                     type="number"
                     required
                     min="0"
                     value={productForm.stock}
                     onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="Enter stock quantity"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                  <label className="block text-sm font-medium text-gray-700">Rating</label>
                   <input
                     type="number"
                     step="0.1"
@@ -727,67 +713,67 @@ function BeautyProductsPage() {
                     max="5"
                     value={productForm.rating}
                     onChange={(e) => setProductForm({ ...productForm, rating: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="0.0 - 5.0"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Rating Users Number</label>
+                  <label className="block text-sm font-medium text-gray-700">Rating Users Number</label>
                   <input
                     type="number"
                     min="0"
                     value={productForm.ratingUsersNumber}
                     onChange={(e) => setProductForm({ ...productForm, ratingUsersNumber: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="Number of users who rated"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Delivery Time (Days) *</label>
+                  <label className="block text-sm font-medium text-gray-700">Min Delivery Time (Days) *</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={productForm.minDeliveryTime}
                     onChange={(e) => setProductForm({ ...productForm, minDeliveryTime: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="e.g., 3"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                  <label className="block text-sm font-medium text-gray-700">Color</label>
                   <input
                     type="text"
                     value={productForm.color}
                     onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="e.g., Red, Blue, Natural"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Material</label>
+                  <label className="block text-sm font-medium text-gray-700">Material</label>
                   <input
                     type="text"
                     value={productForm.material}
                     onChange={(e) => setProductForm({ ...productForm, material: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="Material type"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pack Of *</label>
+                  <label className="block text-sm font-medium text-gray-700">Pack Of *</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={productForm.packOf}
                     onChange={(e) => setProductForm({ ...productForm, packOf: e.target.value })}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     placeholder="e.g., 2"
                   />
                 </div>
@@ -798,40 +784,40 @@ function BeautyProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <label className="block text-sm font-medium text-gray-700">Description *</label>
                 <textarea
                   required
                   rows={4}
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                   placeholder="Enter product description"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Available Sizes *</label>
-                <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">Available Sizes *</label>
+                <div className="mt-1 space-y-3">
                   {productForm.sizes.map((sizeItem, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-gray-200 rounded-md">
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-gray-100 bg-gray-50/60 rounded-xl">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Size</label>
+                        <label className="block text-xs font-medium text-gray-700">Size</label>
                         <input
                           type="text"
                           value={sizeItem.size}
                           onChange={(e) => updateSizeField(index, 'size', e.target.value)}
-                          className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                          className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                           placeholder="e.g., 50ml, 100ml, Free Size"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                        <label className="block text-xs font-medium text-gray-700">Quantity</label>
                         <input
                           type="number"
                           min="0"
                           value={sizeItem.quantity}
                           onChange={(e) => updateSizeField(index, 'quantity', parseInt(e.target.value) || 0)}
-                          className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                          className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                         />
                       </div>
                       <div className="flex items-end">
@@ -840,7 +826,7 @@ function BeautyProductsPage() {
                             type="checkbox"
                             checked={sizeItem.isAvailable}
                             onChange={(e) => updateSizeField(index, 'isAvailable', e.target.checked)}
-                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
                           />
                           <span className="ml-2 text-sm text-gray-700">Available</span>
                         </label>
@@ -850,7 +836,7 @@ function BeautyProductsPage() {
                           <button
                             type="button"
                             onClick={() => removeSizeField(index)}
-                            className="text-red-600 hover:text-red-900 text-sm font-medium"
+                            className="rounded-lg p-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                           >
                             Remove
                           </button>
@@ -861,7 +847,7 @@ function BeautyProductsPage() {
                   <button
                     type="button"
                     onClick={addSizeField}
-                    className="text-sm text-indigo-600 hover:text-indigo-900 font-medium"
+                    className="text-sm font-medium text-pink-600 transition-colors hover:text-pink-700"
                   >
                     + Add Another Size
                   </button>
@@ -869,34 +855,36 @@ function BeautyProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Search Keywords *</label>
+                <label className="block text-sm font-medium text-gray-700">Search Keywords *</label>
                 <input
                   type="text"
                   required
                   value={productForm.searchKeywords}
                   onChange={(e) => setProductForm({ ...productForm, searchKeywords: e.target.value })}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                   placeholder="Enter keywords separated by commas (e.g., lipstick, red, matte)"
                 />
                 <p className="mt-1 text-xs text-gray-500">Keywords help users find this product when searching</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Product Images *</label>
-                <MultiImageUpload
-                  value={productForm.images}
-                  onChange={(images) => setProductForm({ ...productForm, images })}
-                />
+                <label className="block text-sm font-medium text-gray-700">Product Images *</label>
+                <div className="mt-1">
+                  <MultiImageUpload
+                    value={productForm.images}
+                    onChange={(images) => setProductForm({ ...productForm, images })}
+                  />
+                </div>
                 <p className="mt-1 text-xs text-gray-500">Upload at least one product image</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                <label className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
                 <input
                   type="text"
                   value={productForm.tags}
                   onChange={(e) => setProductForm({ ...productForm, tags: e.target.value })}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                   placeholder="tag1, tag2, tag3"
                 />
               </div>
@@ -905,21 +893,21 @@ function BeautyProductsPage() {
 
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4 border-t">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => {
                     setShowProductForm(false);
                     setSelectedCategory('');
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? 'Creating...' : 'Create Product'}
                 </button>
