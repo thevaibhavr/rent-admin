@@ -170,6 +170,7 @@ export interface DashboardStats {
   totalCustomers?: number;
   newCustomers?: number;
   repeatCustomers?: number;
+  totalVisitors?: number;
   totalAdvance?: number;
   totalPending?: number;
   totalSecurity?: number;
@@ -294,6 +295,49 @@ export interface VisitorProfilesResponse {
   total: number;
   totalPages: number;
   currentPage: number;
+}
+
+export interface VisitorActivityDress {
+  productId: string;
+  name: string;
+  views: number;
+  clicks: number;
+  lastViewedAt: string | null;
+  lastClickedAt: string | null;
+  imageUrl: string | null;
+  detailUrl: string;
+}
+
+export interface VisitorActivityCategory {
+  slug: string;
+  name: string;
+  clicks: number;
+  lastClickedAt: string | null;
+}
+
+export interface VisitorActivitySearch {
+  keyword: string;
+  count: number;
+  noResults: number;
+  lastSearchedAt: string | null;
+}
+
+export interface VisitorProfileDetail {
+  profile: VisitorProfileRecord;
+  summary: {
+    totalViews: number;
+    totalProductClicks: number;
+    uniqueDresses: number;
+    totalSearches: number;
+    totalCategoryClicks: number;
+    totalEvents: number;
+    activeDays: number;
+    firstSeen: string | null;
+    lastSeen: string | null;
+  };
+  dresses: VisitorActivityDress[];
+  categories: VisitorActivityCategory[];
+  searches: VisitorActivitySearch[];
 }
 
 export interface ProductActivityStat {

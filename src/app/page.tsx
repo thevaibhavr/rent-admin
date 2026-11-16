@@ -48,11 +48,6 @@ import { useAuth } from '@/contexts/AuthContext';
 const inr = (value: number) => `₹${Math.round(value || 0).toLocaleString('en-IN')}`;
 const num = (value: number) => (value || 0).toLocaleString('en-IN');
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
 const STATUS_COLORS: Record<string, string> = {
   active: '#b87570',
   completed: '#10b981',
@@ -123,57 +118,26 @@ function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState<string>('');
-  const [selectedWeek, setSelectedWeek] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-
-  const getWeekOptions = () => {
-    const weeks = [];
-    const currentYear = new Date().getFullYear();
-    for (let i = 1; i <= 52; i++) {
-      const weekStr = `${currentYear}-${i.toString().padStart(2, '0')}`;
-      const [yearNum, weekNum] = weekStr.split('-').map(Number);
-      const simple = new Date(yearNum, 0, 4);
-      const jan4Day = simple.getDay() || 7;
-      const weekStart = new Date(simple);
-      weekStart.setDate(simple.getDate() - jan4Day + 1 + (weekNum - 1) * 7);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      if (weekStart.getFullYear() === yearNum || weekStart.getFullYear() === yearNum - 1) {
-        const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        weeks.push({ value: weekStr, label: `Week ${i} (${startStr} - ${endStr})` });
-      }
-    }
-    return weeks;
-  };
-
-  const getYearOptions = () => {
-    const years = [];
-    const currentYear = new Date().getFullYear();
-    for (let i = 0; i <= 5; i++) years.push(currentYear - i);
-    return years;
-  };
+  const [filterType, setFilterType] = useState<string>('6months');
+  const [customStart, setCustomStart] = useState<string>('');
+  const [customEnd, setCustomEnd] = useState<string>('');
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
-      const filters: { filter?: string; week?: string; month?: number; year?: number } = {};
-      if (filterType) {
-        filters.filter = filterType;
-        if (filterType === 'week' && selectedWeek) {
-          filters.week = selectedWeek;
-        } else if (filterType === 'month') {
-          filters.month = selectedMonth;
-          filters.year = selectedYear;
-        } else if (filterType === 'year') {
-          filters.year = selectedYear;
+      const filters: { filter?: string; startDate?: string; endDate?: string } = {};
+      if (filterType === 'custom') {
+        if (customStart && customEnd) {
+          filters.filter = 'custom';
+          filters.startDate = customStart;
+          filters.endDate = customEnd;
         }
+      } else if (filterType && filterType !== 'overall') {
+        filters.filter = filterType;
       }
 
       const [bookingStats, userStats, customerStats] = await Promise.all([
-        apiService.getBookingStats(Object.keys(filters).length > 0 ? filters : undefined),
+        apiService.getBookingStats(filters),
         apiService.getUserStats(),
         apiService.getCustomerStats(),
       ]);
@@ -191,7 +155,7 @@ function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterType, selectedWeek, selectedMonth, selectedYear]);
+  }, [filterType, customStart, customEnd]);
 
   useEffect(() => {
     fetchStats();
@@ -210,23 +174,10 @@ function DashboardPage() {
     return () => clearInterval(interval);
   }, [fetchStats]);
 
-  const handleFilterChange = (type: string) => {
-    setFilterType(type);
-    if (type === 'week' && !selectedWeek) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const start = new Date(year, 0, 1);
-      const days = Math.floor((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
-      const weekNumber = Math.ceil((days + start.getDay() + 1) / 7);
-      setSelectedWeek(`${year}-${weekNumber.toString().padStart(2, '0')}`);
-    }
-  };
-
   const clearFilters = () => {
-    setFilterType('');
-    setSelectedWeek('');
-    setSelectedMonth(new Date().getMonth());
-    setSelectedYear(new Date().getFullYear());
+    setFilterType('6months');
+    setCustomStart('');
+    setCustomEnd('');
   };
 
   if (loading) {
@@ -334,16 +285,17 @@ function DashboardPage() {
           <span className="text-sm font-medium text-gray-700">Period</span>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex rounded-xl bg-gray-100 p-1">
+          <div className="inline-flex flex-wrap rounded-xl bg-gray-100 p-1">
             {[
-              { key: '', label: 'All Time' },
-              { key: 'week', label: 'Week' },
-              { key: 'month', label: 'Month' },
-              { key: 'year', label: 'Year' },
+              { key: '3months', label: 'Last 3 Months' },
+              { key: '6months', label: 'Last 6 Months' },
+              { key: '1year', label: 'Last 1 Year' },
+              { key: 'overall', label: 'Overall' },
+              { key: 'custom', label: 'Custom Range' },
             ].map((option) => (
               <button
-                key={option.key || 'all'}
-                onClick={() => handleFilterChange(option.key)}
+                key={option.key}
+                onClick={() => setFilterType(option.key)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   filterType === option.key
                     ? 'bg-[#633b3b] text-white shadow-sm'
@@ -355,54 +307,27 @@ function DashboardPage() {
             ))}
           </div>
 
-          {filterType === 'week' && (
-            <select
-              value={selectedWeek}
-              onChange={(e) => setSelectedWeek(e.target.value)}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
-            >
-              {getWeekOptions().map((week) => (
-                <option key={week.value} value={week.value}>{week.label}</option>
-              ))}
-            </select>
-          )}
-
-          {filterType === 'month' && (
+          {filterType === 'custom' && (
             <>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              <input
+                type="date"
+                value={customStart}
+                max={customEnd || undefined}
+                onChange={(e) => setCustomStart(e.target.value)}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
-              >
-                {MONTH_NAMES.map((month, index) => (
-                  <option key={index} value={index}>{month}</option>
-                ))}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              />
+              <span className="text-sm text-gray-400">to</span>
+              <input
+                type="date"
+                value={customEnd}
+                min={customStart || undefined}
+                onChange={(e) => setCustomEnd(e.target.value)}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
-              >
-                {getYearOptions().map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+              />
             </>
           )}
 
-          {filterType === 'year' && (
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
-            >
-              {getYearOptions().map((year) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          )}
-
-          {filterType && (
+          {(filterType !== '6months' || customStart || customEnd) && (
             <button
               onClick={clearFilters}
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-[#633b3b] transition-colors hover:bg-[#f7ede8]"
@@ -456,7 +381,7 @@ function DashboardPage() {
       </div>
 
       {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard
           title="Total Customers"
           value={num(totalCustomers)}
@@ -465,6 +390,15 @@ function DashboardPage() {
           bar="from-emerald-400 to-emerald-200"
           chip="bg-emerald-50 text-emerald-600"
           hint={`${repeatRate}% repeat rate`}
+        />
+        <KpiCard
+          title="Total Visitors"
+          value={num(stats.totalVisitors || 0)}
+          icon={Eye}
+          href="/visitor-profiles"
+          bar="from-rose-400 to-rose-200"
+          chip="bg-rose-50 text-rose-500"
+          hint="Tracked visitors"
         />
         <KpiCard
           title="Security Deposits"

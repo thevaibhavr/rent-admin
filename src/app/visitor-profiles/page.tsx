@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowPathIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { ArrowPathIcon, EyeIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiService } from '@/services/api';
 import type { VisitorProfileRecord } from '@/types';
@@ -191,12 +192,17 @@ function VisitorProfilesPage() {
                 {profiles.map((profile) => (
                   <tr key={profile.visitorId} className="transition-colors hover:bg-[#f7ede8]/40">
                     <td className="whitespace-nowrap px-6 py-4">
-                      <div className="flex items-center gap-3">
+                      <Link
+                        href={`/visitor-profiles/${encodeURIComponent(profile.visitorId)}`}
+                        className="group/name flex items-center gap-3"
+                      >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f7ede8] text-sm font-semibold text-[#633b3b]">
                           {getInitials(profile.name)}
                         </div>
-                        <span className="font-medium text-gray-900">{profile.name}</span>
-                      </div>
+                        <span className="font-medium text-gray-900 transition-colors group-hover/name:text-[#b87570]">
+                          {profile.name}
+                        </span>
+                      </Link>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">
                       <div className="flex items-center gap-2">
@@ -217,6 +223,14 @@ function VisitorProfilesPage() {
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{new Date(profile.createdAt).toLocaleString('en-IN')}</td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center gap-1.5">
+                        <Link
+                          href={`/visitor-profiles/${encodeURIComponent(profile.visitorId)}`}
+                          aria-label={`View activity for ${profile.name}`}
+                          title="View visitor activity"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-[#f7ede8] hover:text-[#b87570]"
+                        >
+                          <EyeIcon className="h-5 w-5" />
+                        </Link>
                         <button
                           type="button"
                           onClick={() => startEditing(profile)}

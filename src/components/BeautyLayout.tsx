@@ -78,7 +78,7 @@ export default function BeautyLayout({ children }: BeautyLayoutProps) {
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 py-4">
             {beautyNavigation.map((item) => {
               let isActive = false;
               if (item.href.includes('?tab=') && item.tab) {
@@ -119,14 +119,14 @@ export default function BeautyLayout({ children }: BeautyLayoutProps) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-pink-50 border-r border-pink-200">
+        <div className="flex min-h-0 flex-col flex-grow bg-pink-50 border-r border-pink-200">
           <div className="flex h-16 items-center px-4 bg-pink-600">
             <div className="flex items-center gap-2">
               <SparklesIcon className="h-6 w-6 text-white" />
               <h1 className="text-xl font-bold text-white">Beauty Admin</h1>
             </div>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 py-4">
             {beautyNavigation.map((item) => {
               let isActive = false;
               if (item.href.includes('?tab=') && item.tab) {

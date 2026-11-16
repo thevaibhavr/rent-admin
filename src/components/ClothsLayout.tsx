@@ -78,7 +78,7 @@ function SidebarNavigation({
   onNavigate?: () => void;
 }) {
   return (
-    <nav aria-label="Main navigation" className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+    <nav aria-label="Main navigation" className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5">
       {clothsNavigationGroups.map((group) => (
         <div key={group.name}>
           <h2 className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
@@ -209,7 +209,7 @@ export default function ClothsLayout({ children }: ClothsLayoutProps) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex flex-1 flex-col border-r border-white/10 bg-gradient-to-b from-[#302628] to-[#211b1d]">
+        <div className="flex min-h-0 flex-1 flex-col border-r border-white/10 bg-gradient-to-b from-[#302628] to-[#211b1d]">
           <div className="flex h-[76px] items-center gap-3 border-b border-white/10 px-5">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#b87570] text-white shadow-lg shadow-black/20">
               <SparklesIcon className="h-5 w-5" />

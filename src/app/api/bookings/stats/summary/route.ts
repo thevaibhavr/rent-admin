@@ -2,6 +2,7 @@
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Booking from '@/lib/models/Booking';
+import VisitorProfile from '@/lib/models/VisitorProfile';
 import { requireAuth } from '@/lib/auth';
 import { ok, fail } from '@/lib/apiResponse';
 import { expressError } from '../../errorHandler';
@@ -21,6 +22,8 @@ export async function GET(request: NextRequest) {
     const week = searchParams.get('week');
     const month = searchParams.get('month');
     const year = searchParams.get('year');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
 
     let dateFilter: any = {};
     let filterPeriod: { start?: Date; end?: Date } = {};
@@ -72,6 +75,35 @@ export async function GET(request: NextRequest) {
         },
       };
       filterPeriod = { start: startOfYear, end: endOfYear };
+    } else if (filter === '3months' || filter === '6months' || filter === '1year') {
+      const monthsBack = filter === '3months' ? 3 : filter === '6months' ? 6 : 12;
+      const end = new Date();
+      const start = new Date();
+      start.setMonth(start.getMonth() - monthsBack);
+      start.setHours(0, 0, 0, 0);
+
+      dateFilter = {
+        createdAt: {
+          $gte: start,
+          $lte: end,
+        },
+      };
+      filterPeriod = { start, end };
+    } else if (filter === 'custom') {
+      const isValidDate = (value: string | null) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+      if (isValidDate(startDateParam) && isValidDate(endDateParam)) {
+        const start = new Date(`${startDateParam}T00:00:00.000`);
+        const end = new Date(`${endDateParam}T23:59:59.999`);
+        if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && start <= end) {
+          dateFilter = {
+            createdAt: {
+              $gte: start,
+              $lte: end,
+            },
+          };
+          filterPeriod = { start, end };
+        }
+      }
     }
 
     const allBookings = await Booking.find(dateFilter);
@@ -268,11 +300,15 @@ export async function GET(request: NextRequest) {
       createdAt: booking.createdAt,
     }));
 
+    // ---- Total visitors (respects the active filter, based on first-seen date) ----
+    const totalVisitors = await VisitorProfile.countDocuments(dateFilter);
+
     const stats = {
       totalBookings,
       totalCustomers,
       newCustomers,
       repeatCustomers,
+      totalVisitors,
       totalRevenue,
       totalAdvance,
       totalPending,

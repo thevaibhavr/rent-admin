@@ -21,7 +21,8 @@ import {
   CustomersResponse,
   AnalyticsDashboardData,
   VisitorProfileRecord,
-  VisitorProfilesResponse
+  VisitorProfilesResponse,
+  VisitorProfileDetail
 } from '@/types';
 
 // Beauty-related interfaces
@@ -460,7 +461,7 @@ class ApiService {
     return response.data.data!.booking;
   }
 
-  async getBookingStats(filters?: { filter?: string; week?: string; month?: number; year?: number }): Promise<DashboardStats> {
+  async getBookingStats(filters?: { filter?: string; week?: string; month?: number; year?: number; startDate?: string; endDate?: string }): Promise<DashboardStats> {
     const params = new URLSearchParams();
     if (filters?.filter) {
       params.append('filter', filters.filter);
@@ -471,6 +472,9 @@ class ApiService {
         params.append('year', filters.year.toString());
       } else if (filters.filter === 'year' && filters.year) {
         params.append('year', filters.year.toString());
+      } else if (filters.filter === 'custom' && filters.startDate && filters.endDate) {
+        params.append('startDate', filters.startDate);
+        params.append('endDate', filters.endDate);
       }
     }
     const queryString = params.toString();
@@ -783,6 +787,12 @@ class ApiService {
 
   async deleteVisitorProfile(visitorId: string): Promise<void> {
     await this.api.delete(`/visitor-profiles/${encodeURIComponent(visitorId)}`);
+  }
+
+  async getVisitorProfileDetail(visitorId: string): Promise<VisitorProfileDetail> {
+    const response: AxiosResponse<ApiResponse<VisitorProfileDetail>> =
+      await this.api.get(`/visitor-profiles/${encodeURIComponent(visitorId)}`);
+    return response.data.data!;
   }
 }
 
