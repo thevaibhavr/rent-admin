@@ -23,6 +23,15 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 
+// Surface the server-provided error message (e.g. validation failures) instead of the generic axios text.
+function getErrorMessage(err: unknown, fallback: string): string {
+  const axiosError = err as { response?: { data?: { error?: string; message?: string } } };
+  const serverMessage = axiosError?.response?.data?.error || axiosError?.response?.data?.message;
+  if (serverMessage) return serverMessage;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 interface BookingItemFormData {
   dressId: string;
   originalPrice?: number;
@@ -635,12 +644,16 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
       localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : 'Failed to complete payment');
+      toast.error(getErrorMessage(err, 'Failed to complete payment'));
     }
   };
 
   const handleSubmit = async () => {
     try {
+      if (form.items.some(item => !item.dressId)) {
+        toast.error('Please select a dress for every booking item');
+        return;
+      }
       // Convert form data to API format - remove any _id fields
       const payload = {
         items: form.items.map(item => {
@@ -705,7 +718,7 @@ const BookingForm: React.FC<Props> = ({ onSaved, initial = {} as Partial<Booking
       localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : 'Failed to save booking');
+      toast.error(getErrorMessage(err, 'Failed to save booking'));
     }
   };
 

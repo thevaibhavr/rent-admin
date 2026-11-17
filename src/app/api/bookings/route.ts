@@ -12,6 +12,8 @@ import { expressError } from './errorHandler';
 
 export const dynamic = 'force-dynamic';
 
+const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/;
+
 // POST /api/bookings — Create booking
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -20,6 +22,15 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const data: any = await request.json().catch(() => ({}));
+
+    // Validate items before hitting Mongoose — an empty/missing dressId would
+    // otherwise surface as an opaque "Cast to ObjectId failed" 500.
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      return fail('Please add at least one dress to the booking.', 400);
+    }
+    if (data.items.some((item: any) => !item?.dressId || !OBJECT_ID_REGEX.test(String(item.dressId)))) {
+      return fail('Please select a valid dress for every booking item.', 400);
+    }
 
     // If images are base64 or url strings, upload dress/customer images when provided
     if (data.customer && data.customer.image && data.customer.image.startsWith('data:')) {
