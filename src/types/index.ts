@@ -282,12 +282,21 @@ export interface AnalyticsDashboardData {
   }>;
 }
 
+export type VisitorActivityFilter =
+  | 'all'
+  | 'last_7_days'
+  | 'today'
+  | 'yesterday'
+  | 'last_15_days'
+  | 'not_visited_30';
+
 export interface VisitorProfileRecord {
   visitorId: string;
   name: string;
   mobile: string;
   city: string;
   createdAt: string;
+  lastSeen?: string | null;
 }
 
 export interface VisitorProfilesResponse {
@@ -322,6 +331,17 @@ export interface VisitorActivitySearch {
   lastSearchedAt: string | null;
 }
 
+export type VisitorActivityRange = 'all' | 'today' | 'yesterday' | '7d' | '15d' | '30d' | 'custom';
+
+export interface VisitorActivityTimelineItem {
+  type: 'product_view' | 'product_click' | 'category_click' | 'search';
+  label: string;
+  detail: string | null;
+  productId: string | null;
+  detailUrl: string | null;
+  createdAt: string;
+}
+
 export interface VisitorProfileDetail {
   profile: VisitorProfileRecord;
   summary: {
@@ -335,9 +355,11 @@ export interface VisitorProfileDetail {
     firstSeen: string | null;
     lastSeen: string | null;
   };
+  range: VisitorActivityRange;
   dresses: VisitorActivityDress[];
   categories: VisitorActivityCategory[];
   searches: VisitorActivitySearch[];
+  timeline: VisitorActivityTimelineItem[];
 }
 
 export interface ProductActivityStat {

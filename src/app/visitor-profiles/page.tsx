@@ -5,14 +5,53 @@ import Link from 'next/link';
 import { ArrowPathIcon, EyeIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiService } from '@/services/api';
-import type { VisitorProfileRecord } from '@/types';
+import type { VisitorActivityFilter, VisitorProfileRecord } from '@/types';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
 
 const PAGE_SIZE = 20;
 
+const ACTIVITY_FILTERS: Array<{ key: VisitorActivityFilter; label: string }> = [
+  { key: 'all', label: 'All Visitors' },
+  { key: 'last_7_days', label: 'Last Active (7 Days)' },
+  { key: 'today', label: 'Today' },
+  { key: 'yesterday', label: 'Yesterday' },
+  { key: 'last_15_days', label: 'Last 15 Days' },
+  { key: 'not_visited_30', label: 'Not Visited (30+ Days)' },
+];
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const formatRelative = (value: string | null | undefined) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;
+  return `${Math.floor(months / 12)} year${months >= 24 ? 's' : ''} ago`;
+};
+
 function VisitorProfilesPage() {
   const [profiles, setProfiles] = useState<VisitorProfileRecord[]>([]);
   const [search, setSearch] = useState('');
+  const [activityFilter, setActivityFilter] = useState<VisitorActivityFilter>('all');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -53,7 +92,7 @@ function VisitorProfilesPage() {
       active = false;
       window.clearTimeout(timer);
     };
-  }, [page, refreshKey, search]);
+  }, [page, refreshKey, search, activityFilter]);
 
   const startEditing = (profile: VisitorProfileRecord) => {
     setEditingProfile(profile);
@@ -156,6 +195,25 @@ function VisitorProfilesPage() {
           </div>
           <p className="text-sm text-gray-600">Total profiles: <strong className="text-gray-900">{total.toLocaleString()}</strong></p>
         </div>
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+          {ACTIVITY_FILTERS.map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => {
+                setActivityFilter(option.key);
+                setPage(1);
+              }}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                activityFilter === option.key
+                  ? 'bg-[#b87570] text-white shadow-sm'
+                  : 'bg-[#f7ede8] text-[#633b3b] hover:bg-[#f0ddd5]'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </section>
 
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -174,7 +232,7 @@ function VisitorProfilesPage() {
               <UserGroupIcon className="h-7 w-7" />
             </div>
             <p className="mt-4 text-lg font-medium text-gray-900">No visitor details found</p>
-            <p className="mt-1 text-sm text-gray-500">Try adjusting your search.</p>
+            <p className="mt-1 text-sm text-gray-500">Try adjusting your search or activity filter.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -185,6 +243,7 @@ function VisitorProfilesPage() {
                   <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Mobile</th>
                   <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Village / City</th>
                   <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Submitted</th>
+                  <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Last Visit</th>
                   <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500">Actions</th>
                 </tr>
               </thead>
@@ -221,6 +280,16 @@ function VisitorProfilesPage() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{profile.city}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{new Date(profile.createdAt).toLocaleString('en-IN')}</td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      {profile.lastSeen ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">{formatRelative(profile.lastSeen)}</span>
+                          <span className="text-xs text-gray-500">{formatDateTime(profile.lastSeen)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">No activity yet</span>
+                      )}
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center gap-1.5">
                         <Link

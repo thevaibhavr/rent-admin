@@ -22,7 +22,9 @@ import {
   AnalyticsDashboardData,
   VisitorProfileRecord,
   VisitorProfilesResponse,
-  VisitorProfileDetail
+  VisitorProfileDetail,
+  VisitorActivityFilter,
+  VisitorActivityRange
 } from '@/types';
 
 // Beauty-related interfaces
@@ -771,6 +773,7 @@ class ApiService {
     page: number;
     limit: number;
     search?: string;
+    filter?: VisitorActivityFilter;
   }): Promise<VisitorProfilesResponse> {
     const response: AxiosResponse<ApiResponse<VisitorProfilesResponse>> = await this.api.get('/visitor-profiles', { params });
     return response.data.data!;
@@ -789,9 +792,12 @@ class ApiService {
     await this.api.delete(`/visitor-profiles/${encodeURIComponent(visitorId)}`);
   }
 
-  async getVisitorProfileDetail(visitorId: string): Promise<VisitorProfileDetail> {
+  async getVisitorProfileDetail(
+    visitorId: string,
+    params?: { range?: VisitorActivityRange; startDate?: string; endDate?: string },
+  ): Promise<VisitorProfileDetail> {
     const response: AxiosResponse<ApiResponse<VisitorProfileDetail>> =
-      await this.api.get(`/visitor-profiles/${encodeURIComponent(visitorId)}`);
+      await this.api.get(`/visitor-profiles/${encodeURIComponent(visitorId)}`, { params });
     return response.data.data!;
   }
 }

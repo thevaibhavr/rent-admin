@@ -41,6 +41,26 @@ const normalizeIndianMobile = (value: unknown) => {
 
 const isValidVisitorId = (value: string) => /^[a-zA-Z0-9-]{16,100}$/.test(value);
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+const TIMELINE_LIMIT = 150;
+
+const RANGE_KEYS = new Set(['all', 'today', 'yesterday', '7d', '15d', '30d', 'custom']);
+
+const startOfTodayIST = () => {
+  const istNow = new Date(Date.now() + IST_OFFSET_MS);
+  const startUtc = Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate());
+  return new Date(startUtc - IST_OFFSET_MS);
+};
+
+const parseDateIST = (value: string, endOfDay: boolean) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const startUtc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const start = new Date(startUtc - IST_OFFSET_MS);
+  return endOfDay ? new Date(start.getTime() + DAY_MS - 1) : start;
+};
+
 export async function PUT(request: NextRequest, { params }: RouteContext) {
   const auth = await requireAdmin(request);
   if (auth.error) return fail(auth.error.message, auth.error.status);
@@ -134,6 +154,35 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   const { visitorId } = await params;
   if (!isValidVisitorId(visitorId)) return fail('Invalid visitor profile', 400);
 
+  const searchParams = request.nextUrl.searchParams;
+  const requestedRange = (searchParams.get('range') || 'all').trim();
+  const rangeKey = RANGE_KEYS.has(requestedRange) ? requestedRange : 'all';
+
+  let rangeStart: Date | null = null;
+  let rangeEnd: Date | null = null;
+  if (rangeKey === 'today') {
+    rangeStart = startOfTodayIST();
+  } else if (rangeKey === 'yesterday') {
+    const todayStart = startOfTodayIST();
+    rangeStart = new Date(todayStart.getTime() - DAY_MS);
+    rangeEnd = todayStart;
+  } else if (rangeKey === '7d') {
+    rangeStart = new Date(Date.now() - 7 * DAY_MS);
+  } else if (rangeKey === '15d') {
+    rangeStart = new Date(Date.now() - 15 * DAY_MS);
+  } else if (rangeKey === '30d') {
+    rangeStart = new Date(Date.now() - 30 * DAY_MS);
+  } else if (rangeKey === 'custom') {
+    rangeStart = parseDateIST((searchParams.get('startDate') || '').trim(), false);
+    rangeEnd = parseDateIST((searchParams.get('endDate') || '').trim(), true);
+  }
+
+  const inRange = (date: Date) => {
+    if (rangeStart && date < rangeStart) return false;
+    if (rangeEnd && date > rangeEnd) return false;
+    return true;
+  };
+
   try {
     await connectDB();
     const profile = await VisitorProfile.findOne({ visitorId })
@@ -156,6 +205,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     let totalProductClicks = 0;
     let totalSearches = 0;
     let totalCategoryClicks = 0;
+    let totalEventsInRange = 0;
     let firstSeen: Date | null = null;
     let lastSeen: Date | null = null;
 
@@ -168,6 +218,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         if (!lastSeen || at > lastSeen) lastSeen = at;
         activeDayKeys.add(toDayKey(at));
       }
+
+      if (validAt && !inRange(at)) continue;
+      totalEventsInRange += 1;
 
       if (event.type === 'product_view' || event.type === 'product_click') {
         const productId = event.productId ? String(event.productId) : '';
@@ -225,6 +278,47 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         searches.set(keyword, current);
       }
     }
+
+    const timeline = events
+      .map((event) => ({
+        event,
+        at: event.createdAt instanceof Date ? event.createdAt : new Date(event.createdAt),
+      }))
+      .filter(({ at }) => !Number.isNaN(at.getTime()) && inRange(at))
+      .slice(0, TIMELINE_LIMIT)
+      .map(({ event, at }) => {
+        const createdAt = at.toISOString();
+        if (event.type === 'product_view' || event.type === 'product_click') {
+          const productId = event.productId ? String(event.productId) : null;
+          const name = event.productName || 'a dress';
+          return {
+            type: event.type,
+            label: event.type === 'product_view' ? `Viewed "${name}"` : `Opened "${name}"`,
+            detail: null as string | null,
+            productId,
+            detailUrl: productId ? `${STOREFRONT_BASE_URL}/product/${encodeURIComponent(productId)}` : null,
+            createdAt,
+          };
+        }
+        if (event.type === 'category_click') {
+          return {
+            type: event.type,
+            label: `Browsed "${event.categoryName || event.categorySlug || 'a category'}"`,
+            detail: null as string | null,
+            productId: null,
+            detailUrl: null,
+            createdAt,
+          };
+        }
+        return {
+          type: event.type,
+          label: `Searched "${event.keyword || ''}"`,
+          detail: event.resultCount === 0 ? 'No results found' : null,
+          productId: null,
+          detailUrl: null,
+          createdAt,
+        };
+      });
 
     const dressProductIds = [...dresses.keys()].filter((id) => OBJECT_ID_REGEX.test(id));
     const productDocs = dressProductIds.length
@@ -285,14 +379,16 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         uniqueDresses,
         totalSearches,
         totalCategoryClicks,
-        totalEvents: events.length,
+        totalEvents: totalEventsInRange,
         activeDays: activeDayKeys.size,
         firstSeen: firstSeen ? firstSeen.toISOString() : null,
         lastSeen: lastSeen ? lastSeen.toISOString() : null,
       },
+      range: rangeKey,
       dresses: dressList,
       categories: categoryList,
       searches: searchList,
+      timeline,
     });
   } catch (error) {
     return serverError(error, 'Server error while fetching visitor activity');

@@ -22,7 +22,31 @@ import {
 import ProtectedRoute from '@/components/ProtectedRoute';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
 import { apiService } from '@/services/api';
-import type { VisitorProfileDetail } from '@/types';
+import type { VisitorActivityRange, VisitorActivityTimelineItem, VisitorProfileDetail } from '@/types';
+
+const RANGE_OPTIONS: Array<{ key: VisitorActivityRange; label: string }> = [
+  { key: 'all', label: 'All time' },
+  { key: 'today', label: 'Today' },
+  { key: 'yesterday', label: 'Yesterday' },
+  { key: '7d', label: 'Last 7 days' },
+  { key: '15d', label: 'Last 15 days' },
+  { key: '30d', label: 'Last 30 days' },
+  { key: 'custom', label: 'Custom' },
+];
+
+const TIMELINE_ICON: Record<VisitorActivityTimelineItem['type'], typeof EyeIcon> = {
+  product_view: EyeIcon,
+  product_click: CursorArrowRaysIcon,
+  category_click: TagIcon,
+  search: MagnifyingGlassIcon,
+};
+
+const toInputDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const num = (value: number) => (value || 0).toLocaleString('en-IN');
 
@@ -75,16 +99,23 @@ function VisitorProfileDetailPage() {
   const [detail, setDetail] = useState<VisitorProfileDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [range, setRange] = useState<VisitorActivityRange>('all');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
 
   useEffect(() => {
     if (!visitorId) return;
+    if (range === 'custom' && (!customStart || !customEnd)) return;
     let active = true;
 
     (async () => {
       setLoading(true);
       setError('');
       try {
-        const result = await apiService.getVisitorProfileDetail(visitorId);
+        const result = await apiService.getVisitorProfileDetail(
+          visitorId,
+          range === 'custom' ? { range, startDate: customStart, endDate: customEnd } : { range },
+        );
         if (active) setDetail(result);
       } catch (loadError) {
         console.error('Unable to load visitor activity:', loadError);
@@ -99,9 +130,19 @@ function VisitorProfileDetailPage() {
     return () => {
       active = false;
     };
-  }, [visitorId]);
+  }, [visitorId, range, customStart, customEnd]);
 
-  if (loading) {
+  const selectRange = (key: VisitorActivityRange) => {
+    setRange(key);
+    if (key === 'custom' && (!customStart || !customEnd)) {
+      const end = new Date();
+      const start = new Date(end.getTime() - 6 * 24 * 60 * 60 * 1000);
+      setCustomStart(toInputDate(start));
+      setCustomEnd(toInputDate(end));
+    }
+  };
+
+  if (loading && !detail) {
     return (
       <div className="space-y-6">
         <div className="h-8 w-40 animate-pulse rounded-lg bg-gray-100" />
@@ -133,7 +174,7 @@ function VisitorProfileDetailPage() {
     );
   }
 
-  const { profile, summary, dresses, categories, searches } = detail;
+  const { profile, summary, dresses, categories, searches, timeline } = detail;
   const whatsappNumber = `91${digitsOnly(profile.mobile)}`;
 
   const interestedCategories = categories.slice(0, 8);
@@ -156,6 +197,57 @@ function VisitorProfileDetailPage() {
         <ArrowLeftIcon className="h-4 w-4" />
         Back to visitor details
       </Link>
+
+      {/* Activity time filter */}
+      <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <CalendarDaysIcon className="h-4 w-4 text-[#b87570]" />
+            Activity period
+            {loading && <span className="text-xs font-normal text-gray-400">Updating…</span>}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {RANGE_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => selectRange(option.key)}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                  range === option.key
+                    ? 'bg-[#b87570] text-white shadow-sm'
+                    : 'bg-[#f7ede8] text-[#633b3b] hover:bg-[#f0ddd5]'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {range === 'custom' && (
+          <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-3">
+            <label className="text-xs font-medium text-gray-600">
+              From
+              <input
+                type="date"
+                value={customStart}
+                max={customEnd || undefined}
+                onChange={(event) => setCustomStart(event.target.value)}
+                className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
+              />
+            </label>
+            <label className="text-xs font-medium text-gray-600">
+              To
+              <input
+                type="date"
+                value={customEnd}
+                min={customStart || undefined}
+                onChange={(event) => setCustomEnd(event.target.value)}
+                className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-[#b87570] focus:outline-none focus:ring-2 focus:ring-[#b87570]/30"
+              />
+            </label>
+          </div>
+        )}
+      </section>
 
       {/* Profile header */}
       <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#302628] via-[#3a2d2f] to-[#211b1d] p-6 text-white shadow-xl sm:p-8">
@@ -230,6 +322,58 @@ function VisitorProfileDetailPage() {
             <p className="mt-0.5 text-sm text-gray-500">{stat.label}</p>
           </div>
         ))}
+      </section>
+
+      {/* Recent activity timeline */}
+      <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <ClockIcon className="h-5 w-5 text-[#b87570]" />
+              <h2 className="text-lg font-semibold text-gray-900">Recent activity</h2>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">Exact time of every view, open, search and category click.</p>
+          </div>
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+            {num(timeline.length)}
+          </span>
+        </div>
+        {timeline.length === 0 ? (
+          <div className="py-12 text-center text-sm text-gray-500">No activity in this period.</div>
+        ) : (
+          <ul className="divide-y divide-gray-50">
+            {timeline.map((item, index) => {
+              const Icon = TIMELINE_ICON[item.type];
+              return (
+                <li key={`${item.createdAt}-${index}`} className="flex items-center gap-4 px-6 py-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f7ede8] text-[#b87570]">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-900">{item.label}</p>
+                    {item.detail && <p className="text-xs text-gray-400">{item.detail}</p>}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm text-gray-700">{formatRelative(item.createdAt)}</p>
+                    <p className="text-xs text-gray-400">{formatDateTime(item.createdAt)}</p>
+                  </div>
+                  {item.detailUrl && (
+                    <a
+                      href={item.detailUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Open on storefront"
+                      title="Open on storefront"
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-[#f7ede8] hover:text-[#b87570]"
+                    >
+                      <ArrowTopRightOnSquareIcon className="h-5 w-5" />
+                    </a>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       {/* Interests */}
